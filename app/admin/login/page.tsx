@@ -38,8 +38,8 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm border border-[var(--line)] rounded-lg p-6"
       >
-        <h1 className="text-lg font-semibold mb-1">C Mac Sales admin</h1>
-        <p className="text-sm text-[var(--muted)] mb-6">
+        <h1 className="font-display text-lg mb-1">Memory Lane — Operations</h1>
+        <p className="text-sm text-muted mb-6">
           Staff sign-in — not for customers.
         </p>
 
