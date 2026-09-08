@@ -10,10 +10,11 @@
 
 ## Where the project is right now
 
-**Phase 1 (foundations) is essentially done. Phase 1.5 (design system) is in
-progress.** The repo builds clean, is on GitHub, and the Supabase database is
-fully migrated. No product data exists yet. No design has been done yet — the
-current UI is deliberately plain.
+**Phases 1, 1.5, 2 done. Phase 3 built, needs an Anthropic API key to
+activate real AI (mock works meanwhile).** Storefront live on the real
+domain; the full clearance → detect → identify → review → approve → live
+product workflow is built and testable in `/admin`. Migrations 0001 + 0002
+applied. No real product data yet.
 
 ---
 
@@ -50,23 +51,34 @@ current UI is deliberately plain.
 
 ---
 
-## ▶️ Next recommended task
+## ▶️ Next recommended tasks
 
-**Finish Phase 1.5, then Mark reviews.** After sign-off, start **Phase 2 —
-first end-to-end workflow** (`MEMORYLANE_MASTER_PLAN.md` §12):
+1. **Add `ANTHROPIC_API_KEY`** (Mark, when ready) → real detection + identify.
+   Then test on a real clearance; tune the prompts in `lib/ai/providers/claude.ts`.
+2. **Phase 3 remainder:** photograph hallmarks/labels as separate "mark"
+   photos on a candidate and feed them to `identifyItem` (the provider
+   method already accepts `markPhotos`); a per-product identify/edit screen
+   in `/admin/inventory/[id]`.
+3. **Phase 4 (inventory ops):** storage locations + QR, bulk status changes,
+   the Listed/Sold pipeline.
+4. Storefront: real product gallery (multiple photos), search/filter UI.
 
-1. Migration `0002` — `candidate_items`, `ai_jobs`, `ai_results`, `brands`,
-   `clearance.reference` + status, `staff.role` widened.
-2. `lib/ai/` provider abstraction + `mock` adapter (believable Memory Lane
-   fixtures, zero API keys needed).
-3. `New Clearance` form → capture screen (multi-photo upload to Supabase
-   Storage, `clearance-media` bucket).
-4. "Detect" action → `candidate_items` via the mock adapter.
-5. Bulk candidate review screen (multi-select approve/ignore/merge).
-6. `Approve & Create Product` → mint SKU → `stock_items` → `product_pages`
-   → visible on the storefront.
+## What's built in the workflow (Phase 2 + 3)
 
-Keep the workflow narrow and complete before adding breadth.
+- `lib/ai/`: `VisionProvider` abstraction, `types.ts` (confidence labels,
+  risk flags, `DetectedObject`, `Identification`), `mock.ts` (zero-key
+  fixtures), `providers/claude.ts` (real, structured output, adaptive
+  thinking, cost tracking), `index.ts` resolver (server-only).
+- `/admin` rebranded "Memory Lane — Operations": dashboard tiles, sidebar +
+  mobile bottom nav.
+- `/admin/clearances`: list, new (mints `CLR-YYYY-####`), `[id]` (photo
+  upload straight to Storage + "Analyse photos"), `[id]/review` (bulk
+  select/ignore, per-candidate Identify + IdentificationPanel, inline
+  Approve & list → mints `ML-YYYY-####`, creates product_page, copies photo
+  to public bucket, item goes live).
+- `/admin/review` global queue, `/admin/inventory` stock table.
+- Storefront renders real product photos (home / category / product).
+- Legacy `/admin/jobs` flow removed.
 
 ---
 
