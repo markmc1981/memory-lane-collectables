@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/ui/format";
+import { publicImageUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -40,6 +41,7 @@ export default async function ProductPage({ params }: Props) {
 
   const isSold = product.status === "sold";
   const isReserved = product.status === "reserved";
+  const photoUrl = publicImageUrl(product.primary_photo_path);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -84,7 +86,16 @@ export default async function ProductPage({ params }: Props) {
       </nav>
 
       <div className="grid gap-10 pb-16 lg:grid-cols-2 lg:gap-16">
-        <div className="aspect-[4/5] rounded-lg bg-surface-sunk" />
+        <div className="aspect-[4/5] overflow-hidden rounded-lg bg-surface-sunk">
+          {photoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={product.meta_title}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
 
         <div className="lg:pt-4">
           {product.category_name && (

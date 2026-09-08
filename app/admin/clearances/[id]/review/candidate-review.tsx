@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CONFIDENCE_TEXT, RISK_FLAG_TEXT, confidenceLabel } from "@/lib/ai/types";
-import type { RiskFlag } from "@/lib/ai/types";
-import { bulkReviewCandidates, promoteCandidate } from "../../actions";
+import type { Identification, RiskFlag } from "@/lib/ai/types";
+import {
+  bulkReviewCandidates,
+  identifyCandidate,
+  promoteCandidate,
+} from "../../actions";
 
 export type CandidateView = {
   id: string;
@@ -18,6 +22,7 @@ export type CandidateView = {
   suggestedAskingPrice: number | null;
   status: string;
   photoUrl: string | null;
+  identification: Identification | null;
 };
 
 const confidenceTone = {
@@ -26,6 +31,72 @@ const confidenceTone = {
   possible: "neutral",
   review: "critical",
 } as const;
+
+/** A fuller product title from an identification, if one has been run. */
+function identTitle(c: CandidateView): string | null {
+  const id = c.identification;
+  if (!id) return null;
+  const parts = [id.brand ?? id.maker, id.era, id.itemType ?? c.label].filter(
+    Boolean
+  );
+  return parts.length ? parts.join(" ") : null;
+}
+
+/** A first-draft description from the identification. */
+function identDescription(c: CandidateView): string {
+  const id = c.identification;
+  if (!id) return "";
+  const lines: string[] = [id.summary];
+  const facts = [
+    id.maker && `Maker: ${id.maker}`,
+    id.era && `Era: ${id.era}`,
+    id.material && `Material: ${id.material}`,
+    id.condition && `Condition: ${id.condition}`,
+    id.notableDefects && `Note: ${id.notableDefects}`,
+  ].filter(Boolean);
+  if (facts.length) lines.push("", ...(facts as string[]));
+  return lines.join("\n");
+}
+
+function IdentificationPanel({ id }: { id: Identification }) {
+  const label = confidenceLabel(id.confidence);
+  const rows: [string, string | null][] = [
+    ["Type", id.itemType],
+    ["Brand / maker", id.brand ?? id.maker],
+    ["Era", id.era ?? id.approximateAge],
+    ["Material", id.material],
+    ["Style", id.style],
+    ["Origin", id.countryOfOrigin],
+    ["Markings", id.visibleMarkings],
+    ["Condition", id.condition],
+    ["Defects", id.notableDefects],
+    ["Collectability", id.collectability],
+  ];
+  return (
+    <div className="border-t border-line-soft bg-accent-tint/40 p-4 text-sm">
+      <div className="mb-2 flex items-center gap-2">
+        <Badge tone={confidenceTone[label]}>{CONFIDENCE_TEXT[label]}</Badge>
+        <span className="overline">AI identification</span>
+      </div>
+      <p className="prose-warm mb-3 text-sm">{id.summary}</p>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
+        {rows
+          .filter(([, v]) => v)
+          .map(([k, v]) => (
+            <div key={k} className="flex gap-2">
+              <dt className="shrink-0 text-muted">{k}:</dt>
+              <dd className="text-ink-soft">{v}</dd>
+            </div>
+          ))}
+      </dl>
+      {id.possibleSearchTerms.length > 0 && (
+        <p className="mt-3 text-xs text-muted">
+          Search comparables: {id.possibleSearchTerms.join(" · ")}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export function CandidateReview({
   clearanceId,
@@ -166,6 +237,19 @@ export function CandidateReview({
                       </Button>
                       <Button
                         size="sm"
+                        variant="secondary"
+                        onClick={() =>
+                          startTransition(async () => {
+                            await identifyCandidate(c.id);
+                            router.refresh();
+                          })
+                        }
+                        disabled={pending}
+                      >
+                        {c.identification ? "Re-identify" : "Identify"}
+                      </Button>
+                      <Button
+                        size="sm"
                         variant="ghost"
                         onClick={() =>
                           startTransition(async () => {
@@ -185,6 +269,10 @@ export function CandidateReview({
                   </div>
                 </div>
 
+                {c.identification && (
+                  <IdentificationPanel id={c.identification} />
+                )}
+
                 {expanded === c.id && (
                   <form
                     action={promoteCandidate}
@@ -203,7 +291,7 @@ export function CandidateReview({
                       <input
                         name="title"
                         required
-                        defaultValue={c.label}
+                        defaultValue={identTitle(c) ?? c.label}
                         className="h-10 w-full rounded border border-line bg-surface px-3 outline-none focus:border-ink"
                       />
                     </label>
@@ -219,12 +307,11 @@ export function CandidateReview({
                       />
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1 block text-muted">
-                        Description (optional for now)
-                      </span>
+                      <span className="mb-1 block text-muted">Description</span>
                       <textarea
                         name="description"
-                        rows={3}
+                        rows={4}
+                        defaultValue={identDescription(c)}
                         className="w-full rounded border border-line bg-surface px-3 py-2 outline-none focus:border-ink"
                       />
                     </label>

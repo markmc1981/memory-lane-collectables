@@ -85,8 +85,54 @@ export type PhotoInput = {
   url: string;
 };
 
+/**
+ * A deep look at a SINGLE item — run after detection, on the item's own
+ * photos (and any close-ups of marks/labels). Every field is a best guess
+ * or null; nothing here is asserted as fact.
+ */
+export type Identification = {
+  category: string | null;
+  itemType: string | null;
+  brand: string | null;
+  maker: string | null;
+  model: string | null;
+  era: string | null;
+  approximateAge: string | null;
+  material: string | null;
+  colour: string | null;
+  style: string | null;
+  countryOfOrigin: string | null;
+  visibleMarkings: string | null;
+  condition: string | null;
+  notableDefects: string | null;
+  collectability: string | null;
+  possibleSearchTerms: string[];
+  /** One or two sentences a person can read. Hedged where uncertain. */
+  summary: string;
+  confidence: number;
+  riskFlags: RiskFlag[];
+};
+
+export type IdentificationResult = {
+  provider: string;
+  model: string;
+  promptVersion: string;
+  identification: Identification;
+  costPence: number | null;
+};
+
 export interface VisionProvider {
   readonly name: string;
   /** Find the individual saleable objects across a set of photos. */
   detectObjects(photos: PhotoInput[]): Promise<DetectionResult>;
+  /**
+   * Identify one item in depth. `hint` is the detection label / anything the
+   * staff member has already typed. `markPhotos` are close-ups of hallmarks,
+   * signatures, labels, stamps.
+   */
+  identifyItem(
+    photos: PhotoInput[],
+    hint: string | null,
+    markPhotos?: PhotoInput[]
+  ): Promise<IdentificationResult>;
 }

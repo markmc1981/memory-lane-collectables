@@ -3,26 +3,12 @@ import { Container } from "@/components/ui/container";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ui/product-card";
-import { createClient } from "@/lib/supabase/server";
+import { getProductsByCategory } from "@/lib/data/products";
 
 type Props = { params: Promise<{ slug: string }> };
 
 function titleCase(slug: string) {
-  return slug
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-async function getCategoryProducts(slug: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("public_products")
-    .select(
-      "slug, meta_title, asking_price, currency, status, category_name"
-    )
-    .eq("category_slug", slug);
-
-  return data ?? [];
+  return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -36,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
-  const products = await getCategoryProducts(slug);
+  const products = await getProductsByCategory(slug);
   const name = titleCase(slug);
 
   return (
@@ -70,6 +56,7 @@ export default async function CategoryPage({ params }: Props) {
                   askingPrice: product.asking_price,
                   currency: product.currency,
                   status: product.status,
+                  photoUrl: product.photo_url,
                 }}
               />
             ))}

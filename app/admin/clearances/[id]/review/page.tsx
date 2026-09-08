@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CandidateReview, type CandidateView } from "./candidate-review";
-import type { RiskFlag } from "@/lib/ai/types";
+import type { Identification, RiskFlag } from "@/lib/ai/types";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -47,6 +47,29 @@ export default async function ReviewPage({ params }: Props) {
     })
   );
 
+  // Latest successful identification per candidate (from the AI audit trail).
+  const candidateIds = (rows ?? []).map((r) => r.id);
+  const identByCandidate = new Map<string, Identification>();
+  if (candidateIds.length) {
+    const { data: jobs } = await supabase
+      .from("ai_jobs")
+      .select("subject_id, finished_at, ai_results(raw)")
+      .eq("type", "identify")
+      .eq("subject_type", "candidate_item")
+      .eq("status", "succeeded")
+      .in("subject_id", candidateIds)
+      .order("finished_at", { ascending: false });
+
+    for (const j of jobs ?? []) {
+      if (identByCandidate.has(j.subject_id)) continue;
+      const results = j.ai_results as unknown as { raw: unknown }[] | null;
+      const raw = results?.[0]?.raw as
+        | { identification?: Identification }
+        | undefined;
+      if (raw?.identification) identByCandidate.set(j.subject_id, raw.identification);
+    }
+  }
+
   const candidates: CandidateView[] = (rows ?? []).map((r) => ({
     id: r.id,
     label: r.label,
@@ -59,6 +82,7 @@ export default async function ReviewPage({ params }: Props) {
     photoUrl: r.source_media_id
       ? (urlByMedia.get(r.source_media_id) ?? null)
       : null,
+    identification: identByCandidate.get(r.id) ?? null,
   }));
 
   const toReview = candidates.filter((c) => c.status === "detected").length;

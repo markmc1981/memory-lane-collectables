@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { nextClearanceReference, nextStockNumber, slugify } from "@/lib/refs";
 import { getVisionProvider } from "@/lib/ai";
-import { confidenceLabel } from "@/lib/ai/types";
+import { BUCKETS, copyToListingImages } from "@/lib/storage";
 
 async function requireStaff() {
   const supabase = await createClient();
@@ -217,6 +217,97 @@ export async function bulkReviewCandidates(
 }
 
 // ---------------------------------------------------------------------------
+// Identify a single candidate in depth
+// ---------------------------------------------------------------------------
+
+export async function identifyCandidate(candidateId: string) {
+  const { supabase } = await requireStaff();
+
+  const { data: candidate } = await supabase
+    .from("candidate_items")
+    .select(
+      "id, clearance_id, label, source_media_id, clearance_media(storage_path)"
+    )
+    .eq("id", candidateId)
+    .single();
+  if (!candidate) throw new Error("Candidate not found.");
+
+  const media = candidate.clearance_media as unknown as {
+    storage_path: string;
+  } | null;
+  if (!media?.storage_path) {
+    throw new Error("This candidate has no source photo to identify.");
+  }
+
+  const { data: signed } = await supabase.storage
+    .from("clearance-media")
+    .createSignedUrl(media.storage_path, 600);
+  const photos = signed?.signedUrl
+    ? [{ mediaId: candidate.source_media_id!, url: signed.signedUrl }]
+    : [];
+
+  const { provider } = getVisionProvider();
+
+  const { data: job, error: jobError } = await supabase
+    .from("ai_jobs")
+    .insert({
+      type: "identify",
+      subject_type: "candidate_item",
+      subject_id: candidateId,
+      provider: provider.name,
+      status: "running",
+      started_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (jobError) throw new Error(jobError.message);
+
+  try {
+    const result = await provider.identifyItem(photos, candidate.label);
+
+    await supabase.from("ai_results").insert({
+      ai_job_id: job.id,
+      prompt_version: result.promptVersion,
+      confidence: result.identification.confidence,
+      raw: result as unknown as Record<string, unknown>,
+      evidence: { mediaIds: [candidate.source_media_id] },
+    });
+
+    await supabase
+      .from("ai_jobs")
+      .update({
+        status: "succeeded",
+        model: result.model,
+        cost_pence: result.costPence,
+        finished_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+
+    // Lift the identification's category and risk flags onto the candidate
+    // so the review card reflects the deeper look.
+    const patch: Record<string, unknown> = {
+      risk_flags: result.identification.riskFlags,
+    };
+    if (result.identification.category) {
+      patch.category_guess = result.identification.category;
+    }
+    await supabase.from("candidate_items").update(patch).eq("id", candidateId);
+  } catch (err) {
+    await supabase
+      .from("ai_jobs")
+      .update({
+        status: "failed",
+        error: err instanceof Error ? err.message : String(err),
+        finished_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+    throw err;
+  }
+
+  revalidatePath(`/admin/clearances/${candidate.clearance_id}/review`);
+}
+
+// ---------------------------------------------------------------------------
 // Promote a candidate to a live product
 // ---------------------------------------------------------------------------
 
@@ -237,7 +328,9 @@ export async function promoteCandidate(formData: FormData) {
 
   const { data: candidate } = await supabase
     .from("candidate_items")
-    .select("id, clearance_id, category_guess, risk_flags")
+    .select(
+      "id, clearance_id, category_guess, risk_flags, source_media_id, clearance_media(storage_path)"
+    )
     .eq("id", candidateId)
     .single();
   if (!candidate) throw new Error("Candidate not found.");
@@ -292,6 +385,33 @@ export async function promoteCandidate(formData: FormData) {
     is_indexable: true,
   });
   if (pageError) throw new Error(pageError.message);
+
+  // Carry the candidate's source photo onto the product so the storefront
+  // has something to show. Copy into the public listing-images bucket; the
+  // private original in clearance-media is kept.
+  const sourceMedia = candidate.clearance_media as unknown as {
+    storage_path: string;
+  } | null;
+  if (sourceMedia?.storage_path) {
+    const ext = sourceMedia.storage_path.split(".").pop() ?? "jpg";
+    const dest = `${stockItem.id}/primary.${ext}`;
+    const copied = await copyToListingImages(
+      supabase,
+      BUCKETS.clearanceMedia,
+      sourceMedia.storage_path,
+      dest
+    );
+    if ("path" in copied) {
+      await supabase.from("item_photos").insert({
+        stock_item_id: stockItem.id,
+        type: "listing",
+        storage_path: copied.path,
+        is_primary: true,
+        alt_text: title,
+        taken_by: userId,
+      });
+    }
+  }
 
   await supabase
     .from("candidate_items")

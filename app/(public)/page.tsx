@@ -115,6 +115,7 @@ export default async function HomePage() {
                     askingPrice: product.asking_price,
                     currency: product.currency,
                     status: product.status,
+                    photoUrl: product.photo_url,
                   }}
                 />
               ))}

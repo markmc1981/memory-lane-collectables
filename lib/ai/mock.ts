@@ -1,6 +1,7 @@
 import type {
   DetectedObject,
   DetectionResult,
+  IdentificationResult,
   PhotoInput,
   VisionProvider,
 } from "./types";
@@ -140,6 +141,42 @@ export class MockVisionProvider implements VisionProvider {
       promptVersion: "mock/2026-09-08",
       objects: photos.length === 0 ? [] : pickForPhotos(photos),
       costPence: 0,
+    };
+  }
+
+  async identifyItem(
+    _photos: PhotoInput[],
+    hint: string | null
+  ): Promise<IdentificationResult> {
+    await new Promise((r) => setTimeout(r, 500));
+    const name = hint ?? "Unidentified item";
+    return {
+      provider: "mock",
+      model: "mock-vision-1",
+      promptVersion: "mock/2026-09-08",
+      costPence: 0,
+      identification: {
+        category: "Vintage Furniture",
+        itemType: name,
+        brand: null,
+        maker: null,
+        model: null,
+        era: "1960s–1980s",
+        approximateAge: "40–60 years",
+        material: "Teak / teak veneer",
+        colour: "Mid brown",
+        style: "Mid-century modern",
+        countryOfOrigin: null,
+        visibleMarkings: "None visible in these photos",
+        condition: "Used — light surface wear consistent with age",
+        notableDefects: "Check drawer runners and veneer edges in person",
+        collectability: "Moderate — mid-century teak has a steady market",
+        possibleSearchTerms: [name, "mid century teak", "vintage sideboard"],
+        summary:
+          "Simulated identification (no AI key set). Add an ANTHROPIC_API_KEY to get a real read of this item.",
+        confidence: 0.4,
+        riskFlags: ["identification_uncertain"],
+      },
     };
   }
 }
