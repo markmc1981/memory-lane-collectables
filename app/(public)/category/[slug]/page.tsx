@@ -1,14 +1,25 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Container } from "@/components/ui/container";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { ProductCard } from "@/components/ui/product-card";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = { params: Promise<{ slug: string }> };
+
+function titleCase(slug: string) {
+  return slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 async function getCategoryProducts(slug: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("public_products")
-    .select("slug, meta_title, asking_price, currency, status, category_name")
+    .select(
+      "slug, meta_title, asking_price, currency, status, category_name"
+    )
     .eq("category_slug", slug);
 
   return data ?? [];
@@ -16,49 +27,55 @@ async function getCategoryProducts(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const name = slug.replace(/-/g, " ");
+  const name = titleCase(slug);
   return {
-    title: `${name.charAt(0).toUpperCase()}${name.slice(1)}`,
-    description: `Browse ${name} recovered from Scottish house clearances, available now at Memory Lane Collectables.`,
+    title: name,
+    description: `Browse ${name.toLowerCase()} recovered from house clearances across Scotland, available now at Memory Lane Collectables.`,
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
   const products = await getCategoryProducts(slug);
-  const name = slug.replace(/-/g, " ");
+  const name = titleCase(slug);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight mb-8 capitalize">
-        {name}
-      </h1>
+    <Container width="wide">
+      <header className="border-b border-line py-12">
+        <p className="overline mb-2">Category</p>
+        <h1 className="font-display text-4xl text-ink">{name}</h1>
+      </header>
 
-      {products.length === 0 ? (
-        <p className="text-[var(--muted)]">Nothing in this category yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <Link
-              key={product.slug}
-              href={`/product/${product.slug}`}
-              className="rounded-lg border border-[var(--line)] overflow-hidden"
-            >
-              <div className="aspect-square bg-[var(--line)]/40" />
-              <div className="p-4">
-                <h2 className="font-medium">{product.meta_title}</h2>
-                <p className="text-sm text-[var(--muted)]">
-                  {product.status === "sold"
-                    ? "Sold"
-                    : product.asking_price
-                    ? `£${product.asking_price.toFixed(2)}`
-                    : "Price on request"}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+      <div className="py-12">
+        {products.length === 0 ? (
+          <EmptyState
+            title={`No ${name.toLowerCase()} listed just now`}
+            action={
+              <Button href="/" variant="secondary" size="sm">
+                Back to New Arrivals
+              </Button>
+            }
+          >
+            Stock moves quickly and new pieces are added after every clearance.
+          </EmptyState>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard
+                key={product.slug}
+                product={{
+                  slug: product.slug,
+                  title: product.meta_title,
+                  categoryName: product.category_name,
+                  askingPrice: product.asking_price,
+                  currency: product.currency,
+                  status: product.status,
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </Container>
   );
 }

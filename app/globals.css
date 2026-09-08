@@ -1,15 +1,142 @@
 @import "tailwindcss";
 
+/* ===================================================================
+   Memory Lane Collectables — design tokens
+   See DESIGN_SYSTEM.md. Warm, editorial, gallery-quiet. One accent.
+   =================================================================== */
+
+@theme {
+  /* --- Colour ------------------------------------------------------ */
+  /* Warm paper + warm ink. Nothing pure white, nothing pure black. */
+  --color-paper: #f6f3ec; /* page background */
+  --color-surface: #fffefb; /* cards, raised areas */
+  --color-surface-sunk: #efeae0; /* wells, image placeholders */
+  --color-ink: #211f1b; /* primary text */
+  --color-ink-soft: #4f4a41; /* secondary text */
+  --color-muted: #756e62; /* tertiary text, captions */
+  --color-line: #e2dacb; /* hairlines, borders */
+  --color-line-soft: #ece6da; /* faint dividers */
+
+  /* Accent: deep, desaturated green — natural, considered, not corporate. */
+  --color-accent: #3f4d3a;
+  --color-accent-hover: #333f30;
+  --color-accent-tint: #e9ece3; /* accent wash for quiet backgrounds */
+  --color-on-accent: #f6f3ec;
+
+  /* Highlight: warm rust, used sparingly (sale, "new", small emphasis). */
+  --color-highlight: #a2543b;
+  --color-highlight-tint: #f2e4dd;
+
+  /* Status */
+  --color-positive: #3f6b4a;
+  --color-critical: #9c3b34;
+
+  /* --- Type ------------------------------------------------------- */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --text-2xs: 0.6875rem; /* 11px — overline labels */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 3.75rem;
+
+  /* --- Radius (small — no pill-everything) ----------------------- */
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-lg: 6px;
+  --radius-full: 999px;
+
+  /* --- Elevation (barely-there) --------------------------------- */
+  --shadow-sm: 0 1px 2px rgb(33 31 27 / 0.05);
+  --shadow-md: 0 6px 24px -8px rgb(33 31 27 / 0.14);
+
+  /* --- Motion --------------------------------------------------- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===================================================================
+   Base
+   =================================================================== */
+
 :root {
-  --paper: #faf7f1;
-  --ink: #241f1a;
-  --line: #e4dccb;
-  --accent: #5c6b4f;
-  --accent-ink: #faf7f1;
-  --muted: #7a7264;
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  letter-spacing: -0.005em;
+}
+
+/* Headings default to the display serif; components can override. */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 460;
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===================================================================
+   Utilities
+   =================================================================== */
+
+/* Overline — small tracked label used above headings and on cards. */
+.overline {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Editorial body copy for long-form / description blocks. */
+.prose-warm {
+  max-width: 62ch;
+  color: var(--color-ink-soft);
+  line-height: 1.7;
+}
+.prose-warm p + p {
+  margin-top: 1em;
 }
