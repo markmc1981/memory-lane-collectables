@@ -3,7 +3,8 @@
 > Living status doc. Read this first when picking the project up. Update it as
 > work lands. Architecture lives in `MEMORYLANE_MASTER_PLAN.md`.
 >
-> Last updated: 2026-09-08 (session: master-brief audit + design system start)
+> Last updated: 2026-09-08 (session: master-brief audit + design system;
+> storefront now live on the real domain).
 
 ---
 
@@ -69,15 +70,24 @@ Keep the workflow narrow and complete before adding breadth.
 
 ---
 
+## Live URLs
+
+- **Storefront:** https://www.memorylanecollectables.co.uk (Vercel, auto-deploys
+  from `main`). Currently the new design + empty product states.
+- **Staff app:** https://www.memorylanecollectables.co.uk/admin/login
+  (Mark: `ceemacremovals@gmail.com` + the password set in Supabase Auth).
+- **Local:** `npm run dev` → http://localhost:3000.
+- Vercel project: `markmc1981s-projects/memory-lane-collectables`.
+
 ## ⚠️ Blockers / actions needed from Mark
 
-| # | What | Why it matters |
+| # | What | Status |
 |---|---|---|
-| B1 | **Paste the Supabase publishable key** into `.env.local` (line is marked `PASTE_SUPABASE_PUBLISHABLE_KEY_HERE`). Dashboard → Settings → API Keys → "Publishable and secret" tab → copy the `default` key. | Storefront can't read live data without it (fails soft to empty state until then). |
-| B2 | **Push pending commits** — `git push` from `C:\Users\mmcco\Downloads\memory-lane-collectables` (Claude's push is classifier-blocked). | Otherwise this session's work stays local only. |
-| B3 | **Create Stephen's login** — Supabase → Authentication → Users → add Stephen; then `insert into staff (id, name, role) values ('<his uid>', 'Stephen', 'admin');` | He can't sign in to `/admin` without a `staff` row. |
-| B4 | **Deploy to Vercel** — import the GitHub repo, set `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`, point `memorylanecollectables.co.uk`. | Nothing is live yet. |
-| B5 | **Decide D1–D5** in `MEMORYLANE_MASTER_PLAN.md` §10 (SKU naming, ownership model, reservation contact, photo storage, "found in <town>"). | D1 (SKU prefix) is cheapest to change now, before any stock exists. |
+| B1 | Supabase publishable key in `.env.local` | ✅ done 2026-09-08 (`sb_publishable_fN7oo…`). |
+| B2 | Push commits | ✅ done — pushes work without `--force`. Through `69db6b9`. |
+| B3 | **Stephen's login** — Supabase → Auth → Users → add him; then `insert into staff (id, name, role) values ('<his uid>', 'Stephen', 'admin');` | ⏳ deferred — do when he needs access. |
+| B4 | Vercel deploy | ✅ already set up (2d ago) — env vars + `memorylanecollectables.co.uk` domain live. Auto-deploys on push. NB: verify the Vercel `NEXT_PUBLIC_SUPABASE_ANON_KEY` matches the current key before adding real products. |
+| B5 | **Decide D1–D5** in `MEMORYLANE_MASTER_PLAN.md` §10 (SKU naming, ownership model, reservation contact, photo storage, "found in <town>") | ⏳ D1 (`CMS-`→`ML-` prefix) is cheapest now, before any stock exists. |
 
 ## 🔑 Credentials / accounts still to obtain (not blocking Phase 2)
 
