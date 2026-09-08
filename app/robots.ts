@@ -1,7 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://memorylanecollectables.co.uk";
+import { config } from "@/lib/config";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -12,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin"],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    sitemap: `${config.site.url}/sitemap.xml`,
   };
 }

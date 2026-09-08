@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { config } from "@/lib/config";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://memorylanecollectables.co.uk";
+const SITE_URL = config.site.url;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();

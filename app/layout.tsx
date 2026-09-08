@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { config } from "@/lib/config";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -16,11 +17,8 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://memorylanecollectables.co.uk";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(config.site.url),
   title: {
     default: "Memory Lane Collectables — objects with a story",
     template: "%s | Memory Lane Collectables",
