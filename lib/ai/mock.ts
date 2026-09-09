@@ -180,6 +180,7 @@ export class MockVisionProvider implements VisionProvider {
         notableDefects: "Check drawer runners and veneer edges in person",
         collectability: "Moderate — mid-century teak has a steady market",
         possibleSearchTerms: [name, "mid century teak", "vintage sideboard"],
+        suggestedAskingPrice: 120,
         summary:
           "Simulated identification (no AI key set). Add an ANTHROPIC_API_KEY to get a real read of this item.",
         confidence: 0.4,

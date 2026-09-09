@@ -107,6 +107,8 @@ export type Identification = {
   notableDefects: string | null;
   collectability: string | null;
   possibleSearchTerms: string[];
+  /** Rough, conservative UK resale asking price in GBP, or null. */
+  suggestedAskingPrice: number | null;
   /** One or two sentences a person can read. Hedged where uncertain. */
   summary: string;
   confidence: number;

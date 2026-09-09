@@ -13,11 +13,16 @@ import type {
   VisionProvider,
 } from "../types";
 
-const MODEL = optionalEnv("AI_VISION_MODEL") ?? "claude-opus-5";
-const PROMPT_VERSION = "claude-detect/2026-09-08";
+// Sonnet 5 by default — fast + cheap, and plenty for "what is this and what's
+// it worth". Set AI_VISION_MODEL=claude-opus-5 for maximum accuracy on tricky
+// or high-value items (slower, ~5x the cost).
+const MODEL = optionalEnv("AI_VISION_MODEL") ?? "claude-sonnet-5";
+const PROMPT_VERSION = "claude-detect/2026-09-09";
 
-// Opus 5 pricing, $ per 1M tokens. Override if AI_VISION_MODEL is changed.
-const PRICE = { inPerM: 5, outPerM: 25 };
+// $ per 1M tokens for the default model. Opus 5 is 5 / 25.
+const PRICE = MODEL.includes("opus")
+  ? { inPerM: 5, outPerM: 25 }
+  : { inPerM: 2, outPerM: 10 };
 
 const RISK_FLAGS: RiskFlag[] = [
   "possible_high_value",
@@ -117,6 +122,10 @@ const IdentificationSchema = z.object({
   notableDefects: z.string().nullable().describe("Damage, wear, repairs, losses."),
   collectability: z.string().nullable(),
   possibleSearchTerms: z.array(z.string()),
+  suggestedAskingPrice: z
+    .number()
+    .nullable()
+    .describe("Rough, conservative UK resale asking price in GBP, or null."),
   summary: z
     .string()
     .describe(
@@ -309,6 +318,7 @@ export class ClaudeVisionProvider implements VisionProvider {
         notableDefects: p?.notableDefects ?? null,
         collectability: p?.collectability ?? null,
         possibleSearchTerms: p?.possibleSearchTerms ?? [],
+        suggestedAskingPrice: p?.suggestedAskingPrice ?? null,
         summary: p?.summary ?? "No identification returned.",
         confidence: p?.confidence ?? 0,
         riskFlags: p?.riskFlags ?? [],

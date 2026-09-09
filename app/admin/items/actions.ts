@@ -41,25 +41,19 @@ export async function analyseNewItem(paths: string[]): Promise<ItemDraft> {
 
   const { provider } = getVisionProvider();
 
-  // 1 · what is it (single-item mode)
-  const detection = await provider.detectObjects(photos, "single");
-  const first = detection.objects[0];
-  const label = first?.label ?? "Unidentified item";
+  // 1 · identify the item directly (single-item mode — no separate detect pass)
+  const idResult = await provider.identifyItem(photos, null);
+  const id = idResult.identification;
+  const label = id.itemType ?? id.summary.split(".")[0] ?? "Item";
 
-  // 2 · identify it properly
-  const idResult = await provider.identifyItem(photos, label);
-
-  // 3 · write the listing
+  // 2 · write the listing from the identification
   const listing = await provider.writeListing({
     label,
-    identification: idResult.identification,
-    askingPrice: first?.suggestedAskingPrice ?? null,
+    identification: id,
+    askingPrice: id.suggestedAskingPrice,
   });
 
-  const costPence =
-    (detection.costPence ?? 0) +
-    (idResult.costPence ?? 0) +
-    (listing.costPence ?? 0);
+  const costPence = (idResult.costPence ?? 0) + (listing.costPence ?? 0);
 
   // Log the three calls against a throwaway subject id for the audit trail.
   await supabase.from("ai_jobs").insert({
@@ -76,9 +70,9 @@ export async function analyseNewItem(paths: string[]): Promise<ItemDraft> {
   return {
     title: listing.draft.title || label,
     description: listing.draft.description,
-    category: idResult.identification.category ?? first?.categoryGuess ?? null,
-    suggestedPrice: first?.suggestedAskingPrice ?? null,
-    identification: idResult.identification,
+    category: id.category ?? null,
+    suggestedPrice: id.suggestedAskingPrice,
+    identification: id,
     costPence,
   };
 }
