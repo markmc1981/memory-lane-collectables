@@ -3,10 +3,21 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { addProductPhotos, setPrimaryPhoto, deletePhoto } from "../actions";
+import { enhancePhoto } from "@/lib/ui/enhance-photo";
+import {
+  addProductPhotos,
+  addEnhancedPhoto,
+  setPrimaryPhoto,
+  deletePhoto,
+} from "../actions";
 
-type Photo = { id: string; path: string; url: string | null; isPrimary: boolean };
+type Photo = {
+  id: string;
+  path: string;
+  url: string | null;
+  isPrimary: boolean;
+  isEnhanced: boolean;
+};
 
 export function ProductPhotos({
   stockItemId,
@@ -18,6 +29,8 @@ export function ProductPhotos({
   const router = useRouter();
   const supabase = createClient();
   const [busy, setBusy] = useState(false);
+  const [working, setWorking] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [, start] = useTransition();
 
   async function upload(files: FileList | null) {
@@ -37,6 +50,28 @@ export function ProductPhotos({
     start(() => router.refresh());
   }
 
+  async function enhance(photo: Photo) {
+    if (!photo.url) return;
+    setWorking(photo.id);
+    setError(null);
+    try {
+      const blob = await enhancePhoto(photo.url);
+      const path = `${stockItemId}/${crypto.randomUUID()}-studio.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("listing-images")
+        .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+      if (upErr) throw new Error(upErr.message);
+      await addEnhancedPhoto(stockItemId, path, photo.id);
+      start(() => router.refresh());
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Could not clean up that photo."
+      );
+    } finally {
+      setWorking(null);
+    }
+  }
+
   return (
     <div>
       <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -54,7 +89,23 @@ export function ProductPhotos({
             ) : (
               <div className="aspect-square w-full rounded bg-surface-sunk" />
             )}
-            <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 rounded-b bg-ink/70 p-1 text-2xs text-on-accent opacity-0 transition-opacity group-hover:opacity-100">
+
+            {p.isEnhanced && (
+              <span className="absolute left-1 top-1 rounded bg-ink/70 px-1 text-2xs text-on-accent">
+                studio
+              </span>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 flex flex-wrap justify-between gap-1 rounded-b bg-ink/70 p-1 text-2xs text-on-accent opacity-0 transition-opacity group-hover:opacity-100">
+              {!p.isEnhanced && (
+                <button
+                  onClick={() => enhance(p)}
+                  disabled={working === p.id}
+                  className="font-medium"
+                >
+                  {working === p.id ? "Working…" : "Studio backdrop"}
+                </button>
+              )}
               {!p.isPrimary && (
                 <button
                   onClick={() =>
@@ -83,6 +134,8 @@ export function ProductPhotos({
         ))}
       </div>
 
+      {error && <p className="mb-2 text-xs text-critical">{error}</p>}
+
       <label className="inline-block cursor-pointer">
         <input
           type="file"
@@ -96,6 +149,10 @@ export function ProductPhotos({
           {busy ? "Uploading…" : "Add photos"}
         </span>
       </label>
+      <p className="mt-2 text-2xs text-muted">
+        Hover a photo → “Studio backdrop” cuts the item out and drops it on a
+        clean background. The original is kept.
+      </p>
     </div>
   );
 }

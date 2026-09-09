@@ -63,7 +63,7 @@ export default async function ProductPage({ params }: Props) {
 
   const { data: photoRows } = await supabase
     .from("item_photos")
-    .select("id, storage_path, is_primary")
+    .select("id, storage_path, is_primary, type")
     .eq("stock_item_id", id)
     .order("is_primary", { ascending: false });
 
@@ -72,6 +72,7 @@ export default async function ProductPage({ params }: Props) {
     path: p.storage_path,
     url: publicImageUrl(p.storage_path),
     isPrimary: p.is_primary,
+    isEnhanced: p.type === "ai_edited",
   }));
 
   return (

@@ -124,6 +124,35 @@ export async function addProductPhotos(
   revalidatePath(`/admin/inventory/${stockItemId}`);
 }
 
+/**
+ * Record an AI-enhanced photo (item cut out onto a studio backdrop). The
+ * blob is uploaded to listing-images by the client; here we just add the
+ * row, make it primary, and link it to the original it was made from.
+ */
+export async function addEnhancedPhoto(
+  stockItemId: string,
+  path: string,
+  originalPhotoId: string
+) {
+  const { supabase, userId } = await requireStaff();
+
+  await supabase
+    .from("item_photos")
+    .update({ is_primary: false })
+    .eq("stock_item_id", stockItemId);
+
+  const { error } = await supabase.from("item_photos").insert({
+    stock_item_id: stockItemId,
+    type: "ai_edited",
+    storage_path: path,
+    is_primary: true,
+    original_photo_id: originalPhotoId,
+    taken_by: userId,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/inventory/${stockItemId}`);
+}
+
 export async function setPrimaryPhoto(stockItemId: string, photoId: string) {
   const { supabase } = await requireStaff();
   await supabase
