@@ -1,39 +1,43 @@
 /**
- * The one place environment variables are read. Everything else imports from
- * here — never `process.env.X` scattered through the app (see
- * MEMORYLANE_MASTER_PLAN.md §13).
+ * The one place environment variables are read.
  *
- * Platforms like Vercel can set a variable to an empty string when it's left
- * blank in the dashboard. `env()` treats empty / whitespace-only as "not
- * set" so `??` fallbacks behave the way you'd expect.
+ * `NEXT_PUBLIC_*` vars MUST be accessed as static `process.env.NEXT_PUBLIC_X`
+ * literals — Next only inlines them into the browser bundle that way. Never
+ * read them through a helper/dynamic key, or they come back undefined in the
+ * client and anything importing this module crashes on load.
+ *
+ * Server-only vars go through `env()` (dynamic is fine — server has the real
+ * `process.env`).
  */
-function env(key: string): string | undefined {
-  const value = process.env[key];
-  if (value == null) return undefined;
-  const trimmed = value.trim();
-  return trimmed === "" ? undefined : trimmed;
+
+// --- public: inlined at build time, safe in the browser ---
+const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const NEXT_PUBLIC_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+
+function clean(v: string | undefined): string | undefined {
+  if (v == null) return undefined;
+  const t = v.trim();
+  return t === "" ? undefined : t;
 }
 
-function required(key: string): string {
-  const value = env(key);
-  if (value === undefined) {
-    throw new Error(
-      `Missing required environment variable: ${key}. ` +
-        `Copy .env.example to .env.local and fill it in.`
-    );
-  }
-  return value;
+/** Server-only var lookup — dynamic key is fine on the server. */
+function env(key: string): string | undefined {
+  return clean(process.env[key]);
 }
 
 export const config = {
   site: {
     /** Canonical origin, no trailing slash. */
-    url:
-      env("NEXT_PUBLIC_SITE_URL") ?? "https://memorylanecollectables.co.uk",
+    url: clean(NEXT_PUBLIC_SITE_URL) ?? "https://memorylanecollectables.co.uk",
   },
   supabase: {
-    url: required("NEXT_PUBLIC_SUPABASE_URL"),
-    anonKey: required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    // Empty string fallback rather than a throw: a missing value here is a
+    // deploy misconfiguration, and the Supabase client will surface it
+    // clearly on first use — better than crashing every page that imports
+    // this module.
+    url: clean(NEXT_PUBLIC_SUPABASE_URL) ?? "",
+    anonKey: clean(NEXT_PUBLIC_SUPABASE_ANON_KEY) ?? "",
     /** Server-only. Undefined until a job needs to bypass RLS. */
     serviceRoleKey: env("SUPABASE_SERVICE_ROLE_KEY"),
   },
@@ -49,5 +53,5 @@ export const config = {
   },
 } as const;
 
-/** Non-throwing lookup for optional integrations (AI keys, Stripe, email…). */
+/** Non-throwing lookup for optional server integrations (AI keys, email…). */
 export { env as optionalEnv };
