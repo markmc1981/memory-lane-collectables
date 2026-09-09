@@ -53,7 +53,8 @@ export default async function ClearancePage({ params }: Props) {
   const hasPhotos = (media ?? []).length > 0;
   const hasCandidates = candidates.length > 0;
 
-  const runDetectionForClearance = runDetection.bind(null, id);
+  const analyseSingle = runDetection.bind(null, id, "single");
+  const analyseMulti = runDetection.bind(null, id, "multi");
 
   return (
     <div>
@@ -116,20 +117,36 @@ export default async function ClearancePage({ params }: Props) {
             <p className="text-sm text-muted">Add photos first.</p>
           ) : unscanned === 0 ? (
             <p className="text-sm text-muted">
-              All photos scanned. Add more photos and they&rsquo;ll be analysed
-              on the next run — the ones already done aren&rsquo;t re-scanned.
+              All {media?.length} photo{media?.length === 1 ? "" : "s"} scanned.
+              Add more photos and they&rsquo;ll be analysed next — the ones
+              already done aren&rsquo;t re-scanned.
             </p>
           ) : (
-            <form action={runDetectionForClearance} className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <p className="text-sm text-ink-soft">
-                Analyse the {unscanned} new photo{unscanned === 1 ? "" : "s"} and
-                pull out the individual saleable objects. Each becomes a
-                candidate you review — nothing is listed automatically.
+                {unscanned} new photo{unscanned === 1 ? "" : "s"} to analyse.
+                What&rsquo;s in {unscanned === 1 ? "it" : "them"}?
               </p>
-              <Button type="submit" size="md" className="self-start">
-                Analyse {unscanned} photo{unscanned === 1 ? "" : "s"}
-              </Button>
-            </form>
+              <div className="flex flex-wrap gap-2">
+                <form action={analyseSingle}>
+                  <Button type="submit" size="md">
+                    One item
+                  </Button>
+                </form>
+                <form action={analyseMulti}>
+                  <Button type="submit" size="md" variant="secondary">
+                    Several items — find them all
+                  </Button>
+                </form>
+              </div>
+              <p className="text-2xs text-muted">
+                <strong>One item</strong>: the photos are all of a single thing
+                to list — anything else in shot is ignored.{" "}
+                <strong>Several items</strong>: a room or a group — every
+                saleable object becomes its own candidate. Nothing is listed
+                without you approving it.
+              </p>
+            </div>
           )}
         </div>
       </section>

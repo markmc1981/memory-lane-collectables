@@ -82,7 +82,10 @@ export async function recordUploadedMedia(
 // Run object detection over the clearance's photos
 // ---------------------------------------------------------------------------
 
-export async function runDetection(clearanceId: string) {
+export async function runDetection(
+  clearanceId: string,
+  mode: "single" | "multi" = "single"
+) {
   const { supabase } = await requireStaff();
 
   // Only analyse photos we haven't already scanned. New photos come in as
@@ -128,7 +131,7 @@ export async function runDetection(clearanceId: string) {
   if (jobError) throw new Error(jobError.message);
 
   try {
-    const result = await provider.detectObjects(photos);
+    const result = await provider.detectObjects(photos, mode);
 
     await supabase.from("ai_results").insert({
       ai_job_id: job.id,

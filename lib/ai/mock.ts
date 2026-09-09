@@ -133,15 +133,21 @@ function pickForPhotos(photos: PhotoInput[]): DetectedObject[] {
 export class MockVisionProvider implements VisionProvider {
   readonly name = "mock";
 
-  async detectObjects(photos: PhotoInput[]): Promise<DetectionResult> {
+  async detectObjects(
+    photos: PhotoInput[],
+    mode: "single" | "multi" = "single"
+  ): Promise<DetectionResult> {
     // A touch of latency so the UI's processing state is visible.
     await new Promise((r) => setTimeout(r, 600));
+
+    let objects = photos.length === 0 ? [] : pickForPhotos(photos);
+    if (mode === "single") objects = objects.slice(0, 1);
 
     return {
       provider: "mock",
       model: "mock-vision-1",
       promptVersion: "mock/2026-09-08",
-      objects: photos.length === 0 ? [] : pickForPhotos(photos),
+      objects,
       costPence: 0,
     };
   }

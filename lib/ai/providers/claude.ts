@@ -77,7 +77,7 @@ const DetectionSchema = z.object({
     .describe("Every distinct saleable object across all the photos."),
 });
 
-const SYSTEM = `You identify individual saleable objects in photographs taken during a house clearance in Scotland, for a vintage/antiques resale business.
+const SYSTEM_MULTI = `You identify individual saleable objects in photographs taken during a house clearance in Scotland, for a vintage/antiques resale business.
 
 Rules:
 - List each DISTINCT object once. If the same object appears in several photos, list it once, citing the clearest photo.
@@ -86,6 +86,16 @@ Rules:
 - Ignore fixtures, rubbish, and things with no resale value (built-in kitchens, radiators, bin bags, obvious junk).
 - Flag — never certify — anything that could be valuable, precious metal, designer, signed, antique, or a collectable watch, and anything you are unsure about.
 - Prices are rough UK resale asking prices in GBP, conservative, or null.`;
+
+const SYSTEM_SINGLE = `These photographs are ALL of a SINGLE item that a Scottish vintage/antiques reseller wants to list for sale.
+
+Return EXACTLY ONE object: the main item being photographed. Ignore everything else — background furniture, other objects in the room, the floor, the wall. If several photos show the same item from different angles, that is still one object.
+
+Rules:
+- Describe only what is visibly there. Never invent a brand, maker, age or material without visible evidence. If guessing, say so and lower the confidence.
+- If it is clearly a matched set (e.g. a pair of lamps, six chairs) photographed together as the item for sale, set quantity accordingly.
+- Flag — never certify — anything that could be valuable, precious metal, designer, signed, antique, or a collectable watch, and anything you are unsure about.
+- Price is a rough, conservative UK resale asking price in GBP, or null.`;
 
 const IdentificationSchema = z.object({
   category: z.string().nullable(),
@@ -171,7 +181,10 @@ export class ClaudeVisionProvider implements VisionProvider {
     this.client = new Anthropic({ apiKey });
   }
 
-  async detectObjects(photos: PhotoInput[]): Promise<DetectionResult> {
+  async detectObjects(
+    photos: PhotoInput[],
+    mode: "single" | "multi" = "single"
+  ): Promise<DetectionResult> {
     if (photos.length === 0) {
       return {
         provider: this.name,
@@ -189,22 +202,26 @@ export class ClaudeVisionProvider implements VisionProvider {
     });
     content.push({
       type: "text",
-      text: "Identify every distinct saleable object across these photos.",
+      text:
+        mode === "single"
+          ? "Identify the single item these photos are of."
+          : "Identify every distinct saleable object across these photos.",
     });
 
     const response = await this.client.messages.parse({
       model: MODEL,
-      max_tokens: 8000,
+      max_tokens: mode === "single" ? 3000 : 8000,
       thinking: { type: "adaptive" },
-      system: SYSTEM,
+      system: mode === "single" ? SYSTEM_SINGLE : SYSTEM_MULTI,
       messages: [{ role: "user", content }],
       output_config: { format: zodOutputFormat(DetectionSchema) },
     });
 
     const parsed = response.parsed_output;
-    const objects = (parsed?.objects ?? []).map((o) =>
+    let objects = (parsed?.objects ?? []).map((o) =>
       toDetected(o, photos.length)
     );
+    if (mode === "single") objects = objects.slice(0, 1);
 
     const u = response.usage;
     const inTokens =

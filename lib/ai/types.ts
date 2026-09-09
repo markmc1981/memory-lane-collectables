@@ -135,10 +135,19 @@ export type ListingDraftResult = {
   costPence: number | null;
 };
 
+/**
+ * "single": all the photos are of ONE item to list — return just that item.
+ * "multi": a room / group of things — find every saleable object.
+ */
+export type DetectMode = "single" | "multi";
+
 export interface VisionProvider {
   readonly name: string;
-  /** Find the individual saleable objects across a set of photos. */
-  detectObjects(photos: PhotoInput[]): Promise<DetectionResult>;
+  /** Find saleable object(s) across a set of photos. */
+  detectObjects(
+    photos: PhotoInput[],
+    mode?: DetectMode
+  ): Promise<DetectionResult>;
   /**
    * Identify one item in depth. `hint` is the detection label / anything the
    * staff member has already typed. `markPhotos` are close-ups of hallmarks,
