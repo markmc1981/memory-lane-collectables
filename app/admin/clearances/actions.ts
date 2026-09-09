@@ -131,6 +131,15 @@ export async function runDetection(clearanceId: string) {
       evidence: { mediaIds: media.map((m) => m.id) },
     });
 
+    // Re-running detection replaces the not-yet-reviewed candidates. Anything
+    // already acted on (promoted / ignored / merged / needs-better-photo) is
+    // kept — only the untouched 'detected' ones from a previous run go.
+    await supabase
+      .from("candidate_items")
+      .delete()
+      .eq("clearance_id", clearanceId)
+      .eq("status", "detected");
+
     // Each detected object becomes a candidate the team will review.
     const candidates = result.objects.map((o) => ({
       clearance_id: clearanceId,
