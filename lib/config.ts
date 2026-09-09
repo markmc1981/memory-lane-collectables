@@ -37,6 +37,16 @@ export const config = {
     /** Server-only. Undefined until a job needs to bypass RLS. */
     serviceRoleKey: env("SUPABASE_SERVICE_ROLE_KEY"),
   },
+  stripe: {
+    /** Server-only secret key (sk_test_… or sk_live_…). */
+    secretKey: env("STRIPE_SECRET_KEY"),
+    /** whsec_… — verifies webhook signatures. */
+    webhookSecret: env("STRIPE_WEBHOOK_SECRET"),
+    /** True when checkout can actually run. */
+    get enabled() {
+      return Boolean(this.secretKey);
+    },
+  },
 } as const;
 
 /** Non-throwing lookup for optional integrations (AI keys, Stripe, email…). */

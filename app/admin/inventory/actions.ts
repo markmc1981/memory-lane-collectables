@@ -34,6 +34,8 @@ export async function updateProduct(formData: FormData) {
     asking_price: num(formData.get("asking_price")),
     minimum_acceptable_price: num(formData.get("minimum_acceptable_price")),
     quick_sale_price: num(formData.get("quick_sale_price")),
+    courier_price: num(formData.get("courier_price")),
+    delivery_note: String(formData.get("delivery_note") ?? "").trim() || null,
     maker: String(formData.get("maker") ?? "").trim() || null,
     era: String(formData.get("era") ?? "").trim() || null,
     material: String(formData.get("material") ?? "").trim() || null,

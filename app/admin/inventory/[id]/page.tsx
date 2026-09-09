@@ -45,7 +45,7 @@ export default async function ProductPage({ params }: Props) {
   const { data: item } = await supabase
     .from("stock_items")
     .select(
-      "id, stock_number, title, subtitle, status, asking_price, minimum_acceptable_price, quick_sale_price, maker, era, material, condition_notes, storage_location, job_id, product_pages(slug, public_description), clearance_jobs(reference, job_number, town)"
+      "id, stock_number, title, subtitle, status, asking_price, minimum_acceptable_price, quick_sale_price, courier_price, delivery_note, maker, era, material, condition_notes, storage_location, job_id, product_pages(slug, public_description), clearance_jobs(reference, job_number, town)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -148,6 +148,18 @@ export default async function ProductPage({ params }: Props) {
             defaultValue={item.minimum_acceptable_price}
           />
           <Field label="Storage location" name="storage_location" defaultValue={item.storage_location} />
+          <Field
+            label="Courier price (£) — blank = collection only"
+            name="courier_price"
+            type="number"
+            defaultValue={item.courier_price}
+          />
+          <Field
+            label="Delivery note (shown if no courier price)"
+            name="delivery_note"
+            defaultValue={item.delivery_note}
+            wide
+          />
           <Field label="Maker" name="maker" defaultValue={item.maker} />
           <Field label="Era" name="era" defaultValue={item.era} />
           <Field label="Material" name="material" defaultValue={item.material} />

@@ -7,7 +7,8 @@ const nav = [
   { label: "Clearances", href: "/admin/clearances" },
   { label: "Needs review", href: "/admin/review" },
   { label: "Inventory", href: "/admin/inventory" },
-  { label: "Reservations", href: "/admin/reservations" },
+  { label: "Orders", href: "/admin/orders" },
+  { label: "Enquiries", href: "/admin/reservations" },
 ];
 
 export default async function AdminLayout({

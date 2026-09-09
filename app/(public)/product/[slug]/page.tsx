@@ -3,10 +3,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/ui/format";
+import { ProductCard } from "@/components/ui/product-card";
 import { publicImageUrl } from "@/lib/storage";
+import { config } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
+import { BuyBox } from "./buy-box";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -15,22 +16,35 @@ async function getProduct(slug: string) {
   const { data } = await supabase
     .from("public_products")
     .select(
-      "slug, meta_title, meta_description, public_description, asking_price, currency, status, sold_at, category_name, category_slug, primary_photo_path"
+      "slug, meta_title, meta_description, subtitle, public_description, asking_price, currency, status, sold_at, courier_price, delivery_note, maker, era, material, dimensions, condition_notes, category_name, category_slug, primary_photo_path"
     )
     .eq("slug", slug)
     .maybeSingle();
-
   return data;
+}
+
+async function getRelated(categorySlug: string | null, excludeSlug: string) {
+  const supabase = await createClient();
+  let q = supabase
+    .from("public_products")
+    .select("slug, meta_title, asking_price, currency, status, category_name, primary_photo_path")
+    .neq("slug", excludeSlug)
+    .eq("status", "listed")
+    .limit(4);
+  if (categorySlug) q = q.eq("category_slug", categorySlug);
+  const { data } = await q;
+  return data ?? [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return {};
-
+  const photo = publicImageUrl(product.primary_photo_path);
   return {
     title: product.meta_title,
     description: product.meta_description ?? product.public_description,
+    openGraph: photo ? { images: [photo] } : undefined,
   };
 }
 
@@ -42,12 +56,30 @@ export default async function ProductPage({ params }: Props) {
   const isSold = product.status === "sold";
   const isReserved = product.status === "reserved";
   const photoUrl = publicImageUrl(product.primary_photo_path);
+  const related = await getRelated(product.category_slug, slug);
+
+  const dims = product.dimensions as Record<string, string | number> | null;
+  const details: [string, string | null][] = [
+    ["Maker", product.maker],
+    ["Era", product.era],
+    ["Material", product.material],
+    [
+      "Dimensions",
+      dims
+        ? Object.entries(dims)
+            .map(([k, v]) => `${k} ${v}`)
+            .join(" · ")
+        : null,
+    ],
+    ["Category", product.category_name],
+  ];
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.meta_title,
     description: product.public_description,
+    image: photoUrl ?? undefined,
     category: product.category_name ?? undefined,
     offers: {
       "@type": "Offer",
@@ -56,6 +88,7 @@ export default async function ProductPage({ params }: Props) {
       availability: isSold
         ? "https://schema.org/SoldOut"
         : "https://schema.org/InStock",
+      url: `${config.site.url}/product/${slug}`,
     },
   };
 
@@ -67,8 +100,8 @@ export default async function ProductPage({ params }: Props) {
       />
 
       <nav className="flex flex-wrap items-center gap-1.5 py-6 text-sm text-muted">
-        <Link href="/" className="hover:text-ink">
-          Home
+        <Link href="/shop" className="hover:text-ink">
+          Shop
         </Link>
         {product.category_name && product.category_slug && (
           <>
@@ -85,82 +118,125 @@ export default async function ProductPage({ params }: Props) {
         <span className="text-ink-soft">{product.meta_title}</span>
       </nav>
 
-      <div className="grid gap-10 pb-16 lg:grid-cols-2 lg:gap-16">
-        <div className="aspect-[4/5] overflow-hidden rounded-lg bg-surface-sunk">
-          {photoUrl && (
+      <div className="grid gap-10 pb-12 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+        <div className="overflow-hidden rounded-lg bg-surface-sunk">
+          {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={photoUrl}
               alt={product.meta_title}
-              className="h-full w-full object-cover"
+              className="w-full object-cover"
             />
+          ) : (
+            <div className="aspect-[4/5]" />
           )}
         </div>
 
-        <div className="lg:pt-4">
+        <div>
           {product.category_name && (
             <p className="overline mb-2">{product.category_name}</p>
           )}
           <h1 className="font-display text-3xl leading-tight text-ink sm:text-4xl">
             {product.meta_title}
           </h1>
+          {product.subtitle && (
+            <p className="mt-1 text-ink-soft">{product.subtitle}</p>
+          )}
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-5">
             {isSold ? (
-              <Badge tone="neutral">Sold</Badge>
-            ) : isReserved ? (
-              <Badge tone="highlight">Reserved</Badge>
-            ) : (
-              <span className="font-display text-2xl text-ink">
-                {formatPrice(product.asking_price, product.currency)}
-              </span>
-            )}
-          </div>
-
-          <p className="prose-warm mt-6 whitespace-pre-line">
-            {product.public_description}
-          </p>
-
-          <div className="mt-8">
-            {isSold ? (
-              <p className="text-sm text-muted">
-                This piece has found a home.{" "}
-                <Link
-                  href="/"
-                  className="text-accent underline underline-offset-4"
-                >
-                  See what else is available &rarr;
-                </Link>
-              </p>
-            ) : (
-              <>
-                <Button
-                  href={`/product/${product.slug}/reserve`}
-                  size="lg"
-                  fullWidth
-                >
-                  {isReserved ? "Join the waiting list" : "Reserve this item"}
-                </Button>
-                <p className="mt-3 text-xs text-muted">
-                  Reserving holds the piece for 48 hours while we confirm
-                  collection or delivery. No payment is taken online.
+              <div className="rounded-lg border border-line bg-surface p-5">
+                <Badge tone="neutral">Sold</Badge>
+                <p className="mt-2 text-sm text-muted">
+                  This piece has found a home.{" "}
+                  <Link
+                    href="/shop"
+                    className="text-accent underline underline-offset-4"
+                  >
+                    See what else is available &rarr;
+                  </Link>
                 </p>
-              </>
+              </div>
+            ) : isReserved ? (
+              <div className="rounded-lg border border-line bg-surface p-5">
+                <Badge tone="highlight">Reserved</Badge>
+                <p className="mt-2 text-sm text-muted">
+                  Currently on hold for another customer.{" "}
+                  <Link
+                    href={`/product/${slug}/reserve`}
+                    className="text-accent underline underline-offset-4"
+                  >
+                    Join the waiting list
+                  </Link>
+                </p>
+              </div>
+            ) : (
+              <BuyBox
+                slug={slug}
+                price={product.asking_price}
+                currency={product.currency ?? "GBP"}
+                courierPrice={product.courier_price}
+                deliveryNote={product.delivery_note}
+                checkoutEnabled={config.stripe.enabled}
+              />
             )}
           </div>
 
-          <dl className="mt-10 border-t border-line-soft pt-6 text-sm">
-            <div className="flex justify-between py-2">
-              <dt className="text-muted">Condition</dt>
-              <dd className="text-ink-soft">See description</dd>
-            </div>
-            <div className="flex justify-between py-2">
-              <dt className="text-muted">Delivery</dt>
-              <dd className="text-ink-soft">Collection or courier</dd>
-            </div>
-          </dl>
+          {details.some(([, v]) => v) && (
+            <dl className="mt-8 divide-y divide-line-soft border-y border-line-soft text-sm">
+              {details
+                .filter(([, v]) => v)
+                .map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4 py-2.5">
+                    <dt className="text-muted">{k}</dt>
+                    <dd className="text-right text-ink-soft">{v}</dd>
+                  </div>
+                ))}
+            </dl>
+          )}
         </div>
       </div>
+
+      {/* Description */}
+      <div className="grid gap-10 border-t border-line py-12 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+        <div>
+          <h2 className="font-display text-xl text-ink">About this piece</h2>
+          <p className="prose-warm mt-3 whitespace-pre-line">
+            {product.public_description}
+          </p>
+        </div>
+        {product.condition_notes && (
+          <div>
+            <h2 className="font-display text-xl text-ink">Condition</h2>
+            <p className="prose-warm mt-3 whitespace-pre-line">
+              {product.condition_notes}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Related */}
+      {related.length > 0 && (
+        <div className="border-t border-line py-12">
+          <h2 className="mb-6 font-display text-xl text-ink">You might also like</h2>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
+            {related.map((r) => (
+              <ProductCard
+                key={r.slug}
+                product={{
+                  slug: r.slug,
+                  title: r.meta_title,
+                  categoryName: r.category_name,
+                  askingPrice: r.asking_price,
+                  currency: r.currency,
+                  status: r.status,
+                  photoUrl: publicImageUrl(r.primary_photo_path),
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </Container>
   );
 }

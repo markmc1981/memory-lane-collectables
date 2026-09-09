@@ -61,7 +61,8 @@ export async function getPublicProducts(): Promise<PublicProduct[]> {
   const { data, error } = await supabase
     .from("public_products")
     .select(COLUMNS)
-    .order("status", { ascending: true });
+    .eq("status", "listed")
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("getPublicProducts failed:", error.message);

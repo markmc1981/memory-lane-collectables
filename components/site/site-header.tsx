@@ -1,8 +1,18 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
+import { HeaderSearch } from "./header-search";
+
+function Search() {
+  return (
+    <Suspense fallback={<div className="h-9" />}>
+      <HeaderSearch />
+    </Suspense>
+  );
+}
 
 const primaryNav = [
-  { label: "New Arrivals", href: "/" },
+  { label: "Shop All", href: "/shop" },
   { label: "Furniture", href: "/category/vintage-furniture" },
   { label: "Collectables", href: "/category/collectables" },
   { label: "Ceramics & Glass", href: "/category/ceramics-glass" },
@@ -12,7 +22,7 @@ const primaryNav = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-sm">
       <Container width="wide">
         <div className="flex h-16 items-center justify-between gap-6">
           <Link href="/" className="shrink-0 leading-none">
@@ -22,17 +32,9 @@ export function SiteHeader() {
             <span className="overline block leading-none">Collectables</span>
           </Link>
 
-          <nav className="hidden items-center gap-7 lg:flex">
-            {primaryNav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm text-ink-soft transition-colors hover:text-ink"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="hidden max-w-sm flex-1 lg:block">
+            <Search />
+          </div>
 
           <div className="flex items-center gap-5 text-sm">
             <Link
@@ -50,18 +52,21 @@ export function SiteHeader() {
           </div>
         </div>
 
-        {/* Mobile category row — the desktop nav is hidden below lg */}
-        <nav className="-mx-5 flex gap-5 overflow-x-auto px-5 pb-3 lg:hidden">
+        <nav className="-mx-5 flex items-center gap-6 overflow-x-auto px-5 pb-3">
           {primaryNav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="whitespace-nowrap text-sm text-ink-soft"
+              className="whitespace-nowrap text-sm text-ink-soft transition-colors hover:text-ink"
             >
               {item.label}
             </Link>
           ))}
         </nav>
+
+        <div className="pb-3 lg:hidden">
+          <Search />
+        </div>
       </Container>
     </header>
   );
