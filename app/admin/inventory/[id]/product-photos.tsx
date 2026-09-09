@@ -74,36 +74,42 @@ export function ProductPhotos({
 
   return (
     <div>
-      <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+      <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((p) => (
-          <div key={p.id} className="group relative">
-            {p.url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.url}
-                alt=""
-                className={`aspect-square w-full rounded object-cover ${
-                  p.isPrimary ? "ring-2 ring-accent" : ""
-                }`}
-              />
-            ) : (
-              <div className="aspect-square w-full rounded bg-surface-sunk" />
-            )}
+          <div key={p.id}>
+            <div className="relative">
+              {p.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.url}
+                  alt=""
+                  className={`aspect-square w-full rounded object-cover ${
+                    p.isPrimary ? "ring-2 ring-accent" : ""
+                  }`}
+                />
+              ) : (
+                <div className="aspect-square w-full rounded bg-surface-sunk" />
+              )}
+              {p.isPrimary && (
+                <span className="absolute left-1 top-1 rounded bg-accent px-1.5 text-2xs text-on-accent">
+                  main
+                </span>
+              )}
+              {p.isEnhanced && (
+                <span className="absolute right-1 top-1 rounded bg-ink/70 px-1.5 text-2xs text-on-accent">
+                  studio
+                </span>
+              )}
+            </div>
 
-            {p.isEnhanced && (
-              <span className="absolute left-1 top-1 rounded bg-ink/70 px-1 text-2xs text-on-accent">
-                studio
-              </span>
-            )}
-
-            <div className="absolute inset-x-0 bottom-0 flex flex-wrap justify-between gap-1 rounded-b bg-ink/70 p-1 text-2xs text-on-accent opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="mt-1.5 flex flex-wrap gap-1.5 text-xs">
               {!p.isEnhanced && (
                 <button
                   onClick={() => enhance(p)}
                   disabled={working === p.id}
-                  className="font-medium"
+                  className="rounded bg-accent px-2 py-1 font-medium text-on-accent disabled:opacity-60"
                 >
-                  {working === p.id ? "Working…" : "Studio backdrop"}
+                  {working === p.id ? "Working…" : "✨ Studio backdrop"}
                 </button>
               )}
               {!p.isPrimary && (
@@ -114,6 +120,7 @@ export function ProductPhotos({
                       router.refresh();
                     })
                   }
+                  className="rounded border border-line px-2 py-1 hover:border-ink"
                 >
                   Make main
                 </button>
@@ -125,7 +132,7 @@ export function ProductPhotos({
                     router.refresh();
                   })
                 }
-                className="ml-auto"
+                className="rounded border border-line px-2 py-1 text-muted hover:border-critical hover:text-critical"
               >
                 Delete
               </button>
