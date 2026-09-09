@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { PhotoUpload } from "./photo-upload";
+import { ClearancePhotos } from "./clearance-photos";
 import { runDetection } from "../actions";
 
 type Props = { params: Promise<{ id: string }> };
@@ -85,27 +86,15 @@ export default async function ClearancePage({ params }: Props) {
         <PhotoUpload clearanceId={id} />
 
         {photos.length > 0 && (
-          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {photos.map((p) => (
-              <div key={p.id} className="relative">
-                {p.url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.url}
-                    alt=""
-                    className="aspect-square w-full rounded object-cover"
-                  />
-                ) : (
-                  <div className="aspect-square w-full rounded bg-surface-sunk" />
-                )}
-                {p.scanned && (
-                  <span className="absolute right-1 top-1 rounded bg-positive px-1 text-2xs text-on-accent">
-                    scanned
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          <ClearancePhotos
+            clearanceId={id}
+            photos={photos.map((p, i) => ({
+              id: p.id,
+              path: (media ?? [])[i]?.storage_path ?? "",
+              url: p.url,
+              scanned: p.scanned,
+            }))}
+          />
         )}
       </section>
 

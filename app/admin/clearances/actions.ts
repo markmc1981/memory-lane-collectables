@@ -56,6 +56,21 @@ export async function createClearance(formData: FormData) {
 // Record photos already uploaded to the clearance-media bucket by the browser
 // ---------------------------------------------------------------------------
 
+export async function deleteClearancePhoto(
+  clearanceId: string,
+  mediaId: string,
+  storagePath: string
+) {
+  const { supabase } = await requireStaff();
+  await supabase.storage.from("clearance-media").remove([storagePath]);
+  const { error } = await supabase
+    .from("clearance_media")
+    .delete()
+    .eq("id", mediaId);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/clearances/${clearanceId}`);
+}
+
 export async function recordUploadedMedia(
   clearanceId: string,
   files: { path: string; name: string }[]

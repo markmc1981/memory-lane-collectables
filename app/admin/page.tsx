@@ -49,11 +49,16 @@ export default async function Dashboard() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl text-ink">Dashboard</h1>
-        <Button href="/admin/clearances/new" size="sm">
-          New clearance
-        </Button>
+        <div className="flex gap-2">
+          <Button href="/admin/items/new" size="sm">
+            + Add an item
+          </Button>
+          <Button href="/admin/clearances/new" size="sm" variant="secondary">
+            New clearance
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatPrice } from "@/lib/ui/format";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +16,12 @@ export default async function InventoryPage() {
 
   return (
     <div>
-      <h1 className="mb-6 font-display text-2xl text-ink">Inventory</h1>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="font-display text-2xl text-ink">Inventory</h1>
+        <Button href="/admin/items/new" size="sm">
+          + Add an item
+        </Button>
+      </div>
 
       {(items ?? []).length === 0 ? (
         <EmptyState title="No stock yet">
