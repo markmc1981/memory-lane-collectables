@@ -34,38 +34,39 @@ export default async function InventoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-line-soft">
-              {(items ?? []).map((it) => {
-                const page = it.product_pages as unknown as {
-                  slug: string;
-                } | null;
-                return (
-                  <tr key={it.id}>
-                    <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-muted">
+              {(items ?? []).map((it) => (
+                <tr
+                  key={it.id}
+                  className="cursor-pointer hover:bg-surface-sunk"
+                >
+                  <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-muted">
+                    <Link href={`/admin/inventory/${it.id}`} className="block">
                       {it.stock_number}
-                    </td>
-                    <td className="px-4 py-3 text-ink">{it.title ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <Badge tone="neutral">
-                        {String(it.status).replace(/_/g, " ")}
-                      </Badge>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      {formatPrice(it.asking_price, it.currency)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {page?.slug && (
-                        <Link
-                          href={`/product/${page.slug}`}
-                          className="text-xs text-accent underline underline-offset-4"
-                          target="_blank"
-                        >
-                          View
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-ink">
+                    <Link href={`/admin/inventory/${it.id}`} className="block">
+                      {it.title ?? "—"}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge tone="neutral">
+                      {String(it.status).replace(/_/g, " ")}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    {formatPrice(it.asking_price, it.currency)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/admin/inventory/${it.id}`}
+                      className="text-xs text-accent underline underline-offset-4"
+                    >
+                      Edit
+                    </Link>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
