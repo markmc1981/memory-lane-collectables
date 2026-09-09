@@ -51,17 +51,49 @@ applied. No real product data yet.
 
 ---
 
+## ✅ Also done (2026-09-09)
+
+- **Real AI is live** — `ANTHROPIC_API_KEY` set (local + Vercel). Claude
+  Opus 5 detection + identification + listing-writer all working; Mark
+  reports the IDs are accurate. Auto-drafts the description at approve time.
+- **Bug fixed** — re-running "Analyse photos" was stacking duplicate
+  candidates; now replaces the unreviewed ones.
+- **Real checkout (Stripe)** — brought forward from Phase 9 at Mark's
+  request. "Buy it now" per item, Collection (free) / Courier (£ per item),
+  Stripe hosted checkout, webhook records the order + marks the item sold +
+  stamps sold_at, `/admin/orders`. Needs `STRIPE_SECRET_KEY` +
+  `STRIPE_WEBHOOK_SECRET` to switch on (test keys fine) — until then the
+  shop shows "Reserve" instead of "Buy it now".
+- **Shop / browse** — `/shop` with category + price filters, sort, search;
+  richer product page (details table, condition, related items).
+
 ## ▶️ Next recommended tasks
 
-1. **Add `ANTHROPIC_API_KEY`** (Mark, when ready) → real detection + identify.
-   Then test on a real clearance; tune the prompts in `lib/ai/providers/claude.ts`.
-2. **Phase 3 remainder:** photograph hallmarks/labels as separate "mark"
-   photos on a candidate and feed them to `identifyItem` (the provider
-   method already accepts `markPhotos`); a per-product identify/edit screen
-   in `/admin/inventory/[id]`.
-3. **Phase 4 (inventory ops):** storage locations + QR, bulk status changes,
-   the Listed/Sold pipeline.
-4. Storefront: real product gallery (multiple photos), search/filter UI.
+1. **Stripe keys** (Mark) → switch "Buy it now" on. Test-mode keys work
+   end to end with card `4242 4242 4242 4242`.
+2. **Phase 4 — inventory operations** (Mark asked for this): storage
+   locations, QR code per item, scan-to-find by SKU, bulk status changes.
+3. **Phase 5 — sales channels** (Mark asked): eBay adapter (needs an eBay
+   developer account + app approval), Facebook/Vinted "assisted listing"
+   (no API — generate everything, one-tap manual publish), cross-channel
+   "sold here → end everywhere / raise ACTION REQUIRED task". See
+   `MEMORYLANE_MASTER_PLAN.md` §8.
+4. **Phase 6 — video pipeline**: upload a walkthrough → frames → detect →
+   candidates; optional "auto-list above X% confidence" toggle.
+5. Mark photos (hallmarks/labels) UI; multi-photo product gallery.
+
+## 🎯 Direction confirmed by Mark (2026-09-09)
+
+- Full ecommerce, customers pay on the site (not just Reserve/Enquire).
+- Model it on Vinterior / 1stDibs / eBay — a marketplace-feel browse over
+  our own inventory.
+- End goal: **licence the whole app to other clearance businesses for a
+  monthly fee.** Architecture note: the current single-tenant build IS the
+  per-tenant template — each customer = its own Supabase + Vercel + domain.
+  Keep brand/location/contact/colour configurable (some are still
+  hard-coded: header text, "near Airdrie", email, accent colour) so
+  templating stays cheap. Shared-DB multi-tenancy (`org_id` + RLS) only if
+  it outgrows per-tenant deploys. See `MEMORYLANE_MASTER_PLAN.md` §11.
 
 ## What's built in the workflow (Phase 2 + 3)
 
