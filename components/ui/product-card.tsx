@@ -13,32 +13,30 @@ export type ProductCardData = {
   foundIn?: string | null;
 };
 
-/**
- * The storefront's workhorse. Photo-led, minimal chrome — a hairline, no
- * drop shadow, a whisper of movement on hover. The image does the selling.
- */
 export function ProductCard({ product }: { product: ProductCardData }) {
   const isSold = product.status === "sold";
   const isReserved = product.status === "reserved";
 
   return (
-    <Link href={`/product/${product.slug}`} className="group block">
-      <div className="relative aspect-[4/5] overflow-hidden rounded bg-surface-sunk">
+    <Link
+      href={`/product/${product.slug}`}
+      className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-paper-line bg-surface transition-shadow hover:shadow-lg"
+    >
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper-dim">
         {product.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.photoUrl}
             alt={product.title}
-            className="h-full w-full object-cover transition-transform duration-500 ease-[--ease] group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition-transform duration-300 ease-[--ease] group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <span className="font-display text-sm text-muted">
+            <span className="font-display text-sm text-paper-muted">
               Photograph to follow
             </span>
           </div>
         )}
-
         {(isSold || isReserved) && (
           <div className="absolute left-3 top-3">
             <Badge tone={isSold ? "neutral" : "highlight"}>
@@ -48,19 +46,19 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         )}
       </div>
 
-      <div className="pt-3">
+      <div className="flex flex-1 flex-col p-4">
         {product.categoryName && (
           <p className="overline mb-1">{product.categoryName}</p>
         )}
-        <h3 className="font-display text-lg leading-snug text-ink">
+        <h3 className="font-display text-lg leading-snug text-ink transition-colors group-hover:text-accent-dark">
           {product.title}
         </h3>
-        <div className="mt-1 flex items-baseline gap-2 text-sm">
-          <span className={isSold ? "text-muted line-through" : "text-ink"}>
+        <div className="mt-auto pt-2 flex items-baseline gap-2 text-sm">
+          <span className={isSold ? "text-paper-muted line-through" : "text-ink"}>
             {formatPrice(product.askingPrice, product.currency)}
           </span>
           {product.foundIn && (
-            <span className="text-muted">· Found in {product.foundIn}</span>
+            <span className="text-paper-muted">· Found in {product.foundIn}</span>
           )}
         </div>
       </div>

@@ -2,18 +2,12 @@ import { clsx } from "@/lib/ui/clsx";
 
 type Width = "prose" | "default" | "wide";
 
-const widths: Record<Width, string> = {
-  prose: "max-w-2xl",
-  default: "max-w-5xl",
-  wide: "max-w-6xl",
-};
-
 /**
- * Horizontal page gutter + max width. One place to change the site's
- * measure. Generous padding on mobile; the operations app leans on this too.
+ * Page gutter + measure. `wide` is the site standard (84rem, matches
+ * .container-wide); narrower options for article/form pages.
  */
 export function Container({
-  width = "default",
+  width = "wide",
   className,
   children,
 }: {
@@ -21,8 +15,17 @@ export function Container({
   className?: string;
   children: React.ReactNode;
 }) {
+  if (width === "wide") {
+    return <div className={clsx("container-wide", className)}>{children}</div>;
+  }
   return (
-    <div className={clsx("mx-auto w-full px-5 sm:px-8", widths[width], className)}>
+    <div
+      className={clsx(
+        "mx-auto w-full px-5 sm:px-10",
+        width === "prose" ? "max-w-2xl" : "max-w-5xl",
+        className
+      )}
+    >
       {children}
     </div>
   );

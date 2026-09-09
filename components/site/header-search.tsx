@@ -12,7 +12,9 @@ export function HeaderSearch() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        router.push(q.trim() ? `/shop?q=${encodeURIComponent(q.trim())}` : "/shop");
+        router.push(
+          q.trim() ? `/shop?q=${encodeURIComponent(q.trim())}` : "/shop"
+        );
       }}
       role="search"
     >
@@ -22,7 +24,7 @@ export function HeaderSearch() {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search vintage sideboard, 1960s watch, blue vase…"
         aria-label="Search the shop"
-        className="h-9 w-full rounded-full border border-line bg-surface px-4 text-sm outline-none focus:border-ink"
+        className="h-9 w-full rounded-full border border-ink-line bg-ink-soft px-4 text-sm text-paper placeholder:text-ink-muted outline-none focus:border-accent"
       />
     </form>
   );

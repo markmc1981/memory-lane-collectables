@@ -1,42 +1,56 @@
 @import "tailwindcss";
 
 /* ===================================================================
-   Memory Lane Collectables — design tokens
-   See DESIGN_SYSTEM.md. Warm, editorial, gallery-quiet. One accent.
+   Memory Lane Collectables — visual system
+   Structure borrowed from the Whats Oan design sheet (layout rhythm,
+   radius/border rules, component recipes, motion, a11y). Palette + type
+   are our own: warm paper, dark warm ink, aged-brass accent.
    =================================================================== */
 
 @theme {
-  /* --- Colour ------------------------------------------------------ */
-  /* Warm paper + warm ink. Nothing pure white, nothing pure black. */
-  --color-paper: #f6f3ec; /* page background */
-  --color-surface: #fffefb; /* cards, raised areas */
-  --color-surface-sunk: #efeae0; /* wells, image placeholders */
-  --color-ink: #211f1b; /* primary text */
-  --color-ink-soft: #4f4a41; /* secondary text */
-  --color-muted: #756e62; /* tertiary text, captions */
-  --color-line: #e2dacb; /* hairlines, borders */
-  --color-line-soft: #ece6da; /* faint dividers */
+  /* --- Ink: the dark colour. Header, footer, hero bands, primary text. --- */
+  --color-ink: #23221d;
+  --color-ink-soft: #2f2e28; /* secondary dark surface (menus, cards on dark) */
+  --color-ink-line: #3d3b33; /* borders ON dark surfaces */
+  --color-ink-muted: #a9a496; /* muted text ON dark surfaces */
 
-  /* Accent: deep, desaturated green — natural, considered, not corporate. */
-  --color-accent: #3f4d3a;
-  --color-accent-hover: #333f30;
-  --color-accent-tint: #e9ece3; /* accent wash for quiet backgrounds */
-  --color-on-accent: #f6f3ec;
+  /* --- Paper: the light background. --- */
+  --color-paper: #f6f3ec;
+  --color-paper-dim: #efe9dd; /* alternating light band */
+  --color-paper-line: #e3dbc9; /* borders on light surfaces */
+  --color-paper-muted: #6e695c; /* muted text on light surfaces */
 
-  /* Highlight: warm rust, used sparingly (sale, "new", small emphasis). */
-  --color-highlight: #a2543b;
-  --color-highlight-tint: #f2e4dd;
+  --color-surface: #fffdf8; /* raised card on light */
 
-  /* Status */
+  /* --- Primary accent: aged brass. Every CTA, link, focus ring. --- */
+  --color-accent: #9a7b3c;
+  --color-accent-dark: #78602c;
+  --color-accent-tint: #eee4cd;
+
+  /* --- Secondary accent: muted terracotta. Badges only. --- */
+  --color-accent-2: #a2543b;
+  --color-accent-2-dark: #7f3f2c;
+  --color-accent-2-tint: #f1e3db;
+
   --color-positive: #3f6b4a;
   --color-critical: #9c3b34;
 
-  /* --- Type ------------------------------------------------------- */
+  /* --- back-compat aliases so existing class names keep resolving --- */
+  --color-line: #e3dbc9;
+  --color-line-soft: #ece5d4;
+  --color-muted: #6e695c;
+  --color-on-accent: #23221d; /* brass buttons carry dark text */
+  --color-accent-hover: #78602c;
+  --color-surface-sunk: #efe9dd;
+  --color-highlight: #a2543b;
+  --color-highlight-tint: #f1e3db;
+
+  /* --- Type --- */
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-  --text-2xs: 0.6875rem; /* 11px — overline labels */
+  --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -47,17 +61,18 @@
   --text-4xl: 3rem;
   --text-5xl: 3.75rem;
 
-  /* --- Radius (small — no pill-everything) ----------------------- */
-  --radius-sm: 2px;
-  --radius: 3px;
-  --radius-lg: 6px;
+  /* --- Radius: cards get a real curve, buttons/badges are pills --- */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-card: 1.1rem;
+  --radius-lg: 1.1rem;
+  --radius-pill: 999px;
   --radius-full: 999px;
 
-  /* --- Elevation (barely-there) --------------------------------- */
-  --shadow-sm: 0 1px 2px rgb(33 31 27 / 0.05);
-  --shadow-md: 0 6px 24px -8px rgb(33 31 27 / 0.14);
+  --shadow-sm: 0 1px 2px rgb(35 34 29 / 0.05);
+  --shadow-lg: 0 18px 40px -16px rgb(35 34 29 / 0.18);
+  --shadow-2xl: 0 30px 60px -20px rgb(35 34 29 / 0.28);
 
-  /* --- Motion --------------------------------------------------- */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -70,7 +85,7 @@
 }
 
 * {
-  border-color: var(--color-line);
+  border-color: var(--color-paper-line);
 }
 
 html {
@@ -88,24 +103,28 @@ body {
   letter-spacing: -0.005em;
 }
 
-/* Headings default to the display serif; components can override. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 460;
-  line-height: 1.12;
-  letter-spacing: -0.012em;
+  line-height: 1.1;
+  letter-spacing: -0.014em;
   text-wrap: balance;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 500;
 }
 
 ::selection {
   background: var(--color-accent);
-  color: var(--color-on-accent);
+  color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 3px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -121,22 +140,60 @@ h1, h2, h3, h4 {
    Utilities
    =================================================================== */
 
-/* Overline — small tracked label used above headings and on cards. */
+/* One place the page measure is set. Every section wraps its content. */
+.container-wide {
+  max-width: 84rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@media (min-width: 768px) {
+  .container-wide {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Subtle halftone on dark bands — pure CSS, reads as intentional. */
+.ink-texture {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgb(255 255 255 / 0.05) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+
+/* Small tracked label above headings and on cards. */
 .overline {
   font-family: var(--font-sans);
   font-size: var(--text-2xs);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-paper-muted);
 }
 
-/* Editorial body copy for long-form / description blocks. */
 .prose-warm {
   max-width: 62ch;
-  color: var(--color-ink-soft);
+  color: var(--color-paper-muted);
   line-height: 1.7;
 }
 .prose-warm p + p {
   margin-top: 1em;
+}
+
+/* Skip link — visible only on keyboard focus. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0.5rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius);
+  transition: transform 0.15s var(--ease);
+}
+.skip-link:focus {
+  transform: translateY(0);
 }

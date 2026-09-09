@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Container } from "@/components/ui/container";
+import { Logo } from "./logo";
 import { HeaderSearch } from "./header-search";
 
 function Search() {
@@ -22,42 +22,39 @@ const primaryNav = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-sm">
-      <Container width="wide">
-        <div className="flex h-16 items-center justify-between gap-6">
-          <Link href="/" className="shrink-0 leading-none">
-            <span className="block font-display text-lg tracking-tight text-ink">
-              Memory Lane
-            </span>
-            <span className="overline block leading-none">Collectables</span>
+    <header className="sticky top-0 z-40 bg-ink text-paper ink-texture">
+      <div className="container-wide">
+        <div className="flex h-[4.5rem] items-center justify-between gap-6">
+          <Link href="/" aria-label="Memory Lane Collectables — home">
+            <Logo tone="dark" />
           </Link>
 
           <div className="hidden max-w-sm flex-1 lg:block">
             <Search />
           </div>
 
-          <div className="flex items-center gap-5 text-sm">
+          <nav className="flex items-center gap-5 text-sm">
             <Link
               href="/sell"
-              className="hidden text-ink-soft transition-colors hover:text-ink sm:block"
+              className="hidden text-ink-muted transition-colors hover:text-paper sm:block"
             >
               Sell to Us
             </Link>
             <Link
               href="/about"
-              className="text-ink-soft transition-colors hover:text-ink"
+              className="text-ink-muted transition-colors hover:text-paper"
             >
               About
             </Link>
-          </div>
+          </nav>
         </div>
 
-        <nav className="-mx-5 flex items-center gap-6 overflow-x-auto px-5 pb-3">
+        <nav className="-mx-1 flex items-center gap-6 overflow-x-auto px-1 pb-3">
           {primaryNav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="whitespace-nowrap text-sm text-ink-soft transition-colors hover:text-ink"
+              className="whitespace-nowrap text-sm text-ink-muted transition-colors hover:text-paper"
             >
               {item.label}
             </Link>
@@ -67,7 +64,7 @@ export function SiteHeader() {
         <div className="pb-3 lg:hidden">
           <Search />
         </div>
-      </Container>
+      </div>
     </header>
   );
 }

@@ -1,24 +1,27 @@
 import Link from "next/link";
 import { clsx } from "@/lib/ui/clsx";
 
-type Variant = "primary" | "secondary" | "ghost" | "link";
+type Variant = "primary" | "secondary" | "ghost" | "link" | "on-dark";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-medium transition-colors duration-150 disabled:opacity-55 disabled:pointer-events-none select-none";
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors duration-150 disabled:opacity-55 disabled:pointer-events-none select-none";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-on-accent hover:bg-accent-hover rounded",
+  primary:
+    "bg-accent text-ink hover:bg-accent-dark hover:text-paper",
   secondary:
-    "bg-transparent text-ink border border-line hover:border-ink rounded",
-  ghost: "bg-transparent text-ink hover:bg-surface-sunk rounded",
-  link: "bg-transparent text-accent underline underline-offset-4 decoration-line hover:decoration-accent px-0",
+    "border-2 border-ink text-ink hover:bg-ink hover:text-paper",
+  "on-dark":
+    "border-2 border-paper/40 text-paper hover:bg-paper hover:text-ink",
+  ghost: "text-ink hover:bg-paper-dim",
+  link: "rounded-none text-accent-dark underline decoration-accent/40 underline-offset-4 hover:decoration-accent-dark px-0 font-medium",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "text-sm px-3 h-8",
-  md: "text-sm px-4 h-10",
-  lg: "text-base px-6 h-12",
+  sm: "text-sm px-4 min-h-9",
+  md: "text-sm px-5 min-h-11",
+  lg: "text-base px-7 min-h-12",
 };
 
 type CommonProps = {
@@ -67,7 +70,10 @@ export function Button(props: ButtonAsButton | ButtonAsLink) {
   }
 
   return (
-    <button className={cls} {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}>
+    <button
+      className={cls}
+      {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+    >
       {children}
     </button>
   );

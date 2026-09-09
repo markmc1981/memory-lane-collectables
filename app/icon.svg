@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#23221d"/>
+  <ellipse cx="32" cy="32" rx="25" ry="20" fill="none" stroke="#9a7b3c" stroke-opacity="0.55" stroke-width="1.6"/>
+  <ellipse cx="32" cy="32" rx="21" ry="16.5" fill="none" stroke="#9a7b3c" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central" fill="#e9d9b4" style="font-family:Georgia,'Times New Roman',serif;font-weight:500;font-size:24px;letter-spacing:-0.02em">ML</text>
+</svg>

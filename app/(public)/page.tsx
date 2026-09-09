@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductCard } from "@/components/ui/product-card";
@@ -36,56 +35,58 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ---------- Hero ---------- */}
-      <section className="border-b border-line">
-        <Container width="wide">
-          <div className="grid items-center gap-10 py-16 sm:py-24 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+      {/* ---------- Hero — dark band ---------- */}
+      <section className="bg-ink text-paper ink-texture">
+        <div className="container-wide">
+          <div className="grid items-center gap-10 py-16 sm:py-24 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
             <div>
-              <p className="overline mb-5">Vintage · Antique · Collectable</p>
-              <h1 className="font-display text-4xl leading-[1.05] text-ink sm:text-5xl">
+              <p className="text-2xs font-semibold uppercase tracking-[0.2em] text-accent">
+                Vintage · Antique · Collectable
+              </p>
+              <h1 className="mt-5 font-display text-4xl leading-[1.03] sm:text-5xl">
                 Objects with a story.
               </h1>
-              <p className="prose-warm mt-5 text-lg">
+              <p className="mt-5 max-w-prose text-lg text-paper/80">
                 Unusual vintage, collectable and one-off pieces, rediscovered
                 through house clearances across Scotland — each one recovered,
                 checked and priced by hand.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button href="#new-arrivals" size="lg">
-                  Shop New Arrivals
+                <Button href="/shop" size="lg">
+                  Shop everything
                 </Button>
-                <Button href="/collections/mid-century" variant="secondary" size="lg">
-                  Explore Collections
+                <Button href="#new-arrivals" variant="on-dark" size="lg">
+                  See new arrivals
                 </Button>
               </div>
             </div>
 
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-surface-sunk lg:aspect-square">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] border border-ink-line bg-ink-soft lg:aspect-square">
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                <span className="font-display text-xl text-muted">
+                <span className="font-display text-xl text-ink-muted">
                   Hero photograph
                 </span>
-                <span className="max-w-[16rem] text-xs text-muted">
-                  A single strong image of a recovered piece goes here — see
+                <span className="max-w-[16rem] text-xs text-ink-muted">
+                  A single strong image of a recovered piece — see
                   DESIGN_SYSTEM.md.
                 </span>
               </div>
             </div>
           </div>
-        </Container>
+        </div>
       </section>
 
       {/* ---------- New arrivals ---------- */}
       <section id="new-arrivals" className="scroll-mt-24 py-16 sm:py-20">
-        <Container width="wide">
+        <div className="container-wide">
           <div className="mb-8 flex items-end justify-between">
             <div>
               <p className="overline mb-2">Just listed</p>
               <h2 className="font-display text-3xl text-ink">New Arrivals</h2>
             </div>
             <Link
-              href="/category/new-arrivals"
-              className="hidden text-sm text-accent underline underline-offset-4 sm:block"
+              href="/shop"
+              className="hidden text-sm text-accent-dark underline underline-offset-4 sm:block"
             >
               View everything
             </Link>
@@ -104,7 +105,7 @@ export default async function HomePage() {
               or follow along on the journal.
             </EmptyState>
           ) : (
-            <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
               {newArrivals.map((product) => (
                 <ProductCard
                   key={product.slug}
@@ -121,14 +122,14 @@ export default async function HomePage() {
               ))}
             </div>
           )}
-        </Container>
+        </div>
       </section>
 
-      {/* ---------- The Memory Lane difference ---------- */}
-      <section className="border-y border-line bg-surface py-16 sm:py-20">
-        <Container width="wide">
+      {/* ---------- The Memory Lane difference — dim band ---------- */}
+      <section className="border-y border-paper-line bg-paper-dim py-16 sm:py-20">
+        <div className="container-wide">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
-            <div className="aspect-[4/3] rounded-lg bg-surface-sunk" />
+            <div className="aspect-[4/3] rounded-[var(--radius-card)] bg-surface" />
             <div className="flex flex-col justify-center">
               <p className="overline mb-3">The Memory Lane difference</p>
               <h2 className="font-display text-3xl text-ink">
@@ -147,12 +148,12 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-        </Container>
+        </div>
       </section>
 
       {/* ---------- Collections ---------- */}
       <section className="py-16 sm:py-20">
-        <Container width="wide">
+        <div className="container-wide">
           <p className="overline mb-2">Curated</p>
           <h2 className="font-display text-3xl text-ink">Collections</h2>
           <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -160,7 +161,7 @@ export default async function HomePage() {
               <Link
                 key={c.href}
                 href={c.href}
-                className="group relative flex aspect-[5/4] items-end overflow-hidden rounded-lg bg-surface-sunk p-4"
+                className="group relative flex aspect-[5/4] items-end overflow-hidden rounded-[var(--radius-card)] border border-paper-line bg-paper-dim p-4 transition-shadow hover:shadow-lg"
               >
                 <span className="font-display text-lg text-ink transition-transform duration-300 ease-[--ease] group-hover:translate-x-1">
                   {c.label}
@@ -168,12 +169,12 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </Container>
+        </div>
       </section>
 
-      {/* ---------- Journal ---------- */}
-      <section className="border-t border-line py-16 sm:py-20">
-        <Container width="wide">
+      {/* ---------- Journal — dim band ---------- */}
+      <section className="border-y border-paper-line bg-paper-dim py-16 sm:py-20">
+        <div className="container-wide">
           <div className="mb-8 flex items-end justify-between">
             <div>
               <p className="overline mb-2">The journal</p>
@@ -183,7 +184,7 @@ export default async function HomePage() {
             </div>
             <Link
               href="/stories"
-              className="hidden text-sm text-accent underline underline-offset-4 sm:block"
+              className="hidden text-sm text-accent-dark underline underline-offset-4 sm:block"
             >
               All articles
             </Link>
@@ -191,25 +192,23 @@ export default async function HomePage() {
           <div className="grid gap-8 sm:grid-cols-3">
             {journal.map((post) => (
               <Link key={post.href} href={post.href} className="group block">
-                <div className="mb-3 aspect-[3/2] rounded bg-surface-sunk" />
+                <div className="mb-3 aspect-[3/2] rounded-[var(--radius-card)] bg-surface" />
                 <p className="overline mb-1">{post.kicker}</p>
-                <h3 className="font-display text-lg leading-snug text-ink group-hover:underline group-hover:decoration-line group-hover:underline-offset-4">
+                <h3 className="font-display text-lg leading-snug text-ink transition-colors group-hover:text-accent-dark">
                   {post.title}
                 </h3>
               </Link>
             ))}
           </div>
-        </Container>
+        </div>
       </section>
 
-      {/* ---------- Newsletter ---------- */}
-      <section className="border-t border-line bg-accent-tint py-16">
-        <Container width="default">
-          <div className="text-center">
-            <h2 className="font-display text-2xl text-ink">
-              First look at new finds
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-ink-soft">
+      {/* ---------- Newsletter — dark band ---------- */}
+      <section className="bg-ink text-paper ink-texture py-16">
+        <div className="container-wide">
+          <div className="mx-auto max-w-lg text-center">
+            <h2 className="font-display text-2xl">First look at new finds</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-paper/75">
               An occasional email when something unusual comes in. No more than
               that.
             </p>
@@ -219,12 +218,12 @@ export default async function HomePage() {
                 required
                 placeholder="you@example.com"
                 aria-label="Email address"
-                className="h-10 flex-1 rounded border border-line bg-surface px-3 text-sm outline-none focus:border-ink"
+                className="h-11 flex-1 rounded-full border border-ink-line bg-ink-soft px-4 text-sm text-paper placeholder:text-ink-muted outline-none focus:border-accent"
               />
               <Button type="submit">Sign up</Button>
             </form>
           </div>
-        </Container>
+        </div>
       </section>
     </>
   );
