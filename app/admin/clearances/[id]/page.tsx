@@ -21,7 +21,7 @@ export default async function ClearancePage({ params }: Props) {
 
   const { data: media } = await supabase
     .from("clearance_media")
-    .select("id, storage_path, original_filename")
+    .select("id, storage_path, original_filename, processing_status")
     .eq("clearance_id", id)
     .order("created_at", { ascending: true });
 
@@ -30,9 +30,17 @@ export default async function ClearancePage({ params }: Props) {
       const { data } = await supabase.storage
         .from("clearance-media")
         .createSignedUrl(m.storage_path, 3600);
-      return { id: m.id, url: data?.signedUrl ?? null };
+      return {
+        id: m.id,
+        url: data?.signedUrl ?? null,
+        scanned: m.processing_status === "processed",
+      };
     })
   );
+
+  const unscanned = (media ?? []).filter(
+    (m) => m.processing_status === "uploaded"
+  ).length;
 
   const { data: candidateRows } = await supabase
     .from("candidate_items")
@@ -77,22 +85,25 @@ export default async function ClearancePage({ params }: Props) {
 
         {photos.length > 0 && (
           <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {photos.map((p) =>
-              p.url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={p.id}
-                  src={p.url}
-                  alt=""
-                  className="aspect-square w-full rounded object-cover"
-                />
-              ) : (
-                <div
-                  key={p.id}
-                  className="aspect-square w-full rounded bg-surface-sunk"
-                />
-              )
-            )}
+            {photos.map((p) => (
+              <div key={p.id} className="relative">
+                {p.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.url}
+                    alt=""
+                    className="aspect-square w-full rounded object-cover"
+                  />
+                ) : (
+                  <div className="aspect-square w-full rounded bg-surface-sunk" />
+                )}
+                {p.scanned && (
+                  <span className="absolute right-1 top-1 rounded bg-positive px-1 text-2xs text-on-accent">
+                    scanned
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </section>
@@ -103,21 +114,21 @@ export default async function ClearancePage({ params }: Props) {
         <div className="rounded-lg border border-line bg-surface p-5">
           {!hasPhotos ? (
             <p className="text-sm text-muted">Add photos first.</p>
+          ) : unscanned === 0 ? (
+            <p className="text-sm text-muted">
+              All photos scanned. Add more photos and they&rsquo;ll be analysed
+              on the next run — the ones already done aren&rsquo;t re-scanned.
+            </p>
           ) : (
             <form action={runDetectionForClearance} className="flex flex-col gap-3">
               <p className="text-sm text-ink-soft">
-                Analyse the {media?.length} photo
-                {media?.length === 1 ? "" : "s"} and pull out the individual
-                saleable objects. Each becomes a candidate you review — nothing
-                is listed automatically.
+                Analyse the {unscanned} new photo{unscanned === 1 ? "" : "s"} and
+                pull out the individual saleable objects. Each becomes a
+                candidate you review — nothing is listed automatically.
               </p>
               <Button type="submit" size="md" className="self-start">
-                {hasCandidates ? "Run detection again" : "Analyse photos"}
+                Analyse {unscanned} photo{unscanned === 1 ? "" : "s"}
               </Button>
-              <p className="text-2xs text-muted">
-                Identification is currently simulated (no AI key set) — the flow
-                is real, the guesses are placeholder.
-              </p>
             </form>
           )}
         </div>

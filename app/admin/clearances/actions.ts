@@ -85,14 +85,20 @@ export async function recordUploadedMedia(
 export async function runDetection(clearanceId: string) {
   const { supabase } = await requireStaff();
 
+  // Only analyse photos we haven't already scanned. New photos come in as
+  // 'uploaded'; once detection has run over one it's 'processed' and won't
+  // be re-scanned (or re-charged) on the next run.
   const { data: media } = await supabase
     .from("clearance_media")
     .select("id, storage_path")
     .eq("clearance_id", clearanceId)
-    .eq("kind", "photo");
+    .eq("kind", "photo")
+    .eq("processing_status", "uploaded");
 
   if (!media || media.length === 0) {
-    throw new Error("Add some photos before running detection.");
+    throw new Error(
+      "No new photos to analyse — add more photos, or re-scan from a photo's menu if you need to."
+    );
   }
 
   // Signed URLs so the provider (a real one, later) can read the images.
@@ -131,15 +137,6 @@ export async function runDetection(clearanceId: string) {
       evidence: { mediaIds: media.map((m) => m.id) },
     });
 
-    // Re-running detection replaces the not-yet-reviewed candidates. Anything
-    // already acted on (promoted / ignored / merged / needs-better-photo) is
-    // kept — only the untouched 'detected' ones from a previous run go.
-    await supabase
-      .from("candidate_items")
-      .delete()
-      .eq("clearance_id", clearanceId)
-      .eq("status", "detected");
-
     // Each detected object becomes a candidate the team will review.
     const candidates = result.objects.map((o) => ({
       clearance_id: clearanceId,
@@ -160,6 +157,15 @@ export async function runDetection(clearanceId: string) {
         .insert(candidates);
       if (candError) throw new Error(candError.message);
     }
+
+    // Mark these photos scanned so the next run skips them.
+    await supabase
+      .from("clearance_media")
+      .update({ processing_status: "processed" })
+      .in(
+        "id",
+        media.map((m) => m.id)
+      );
 
     await supabase
       .from("ai_jobs")
