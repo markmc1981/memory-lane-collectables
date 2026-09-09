@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { CONFIDENCE_TEXT, RISK_FLAG_TEXT, confidenceLabel } from "@/lib/ai/types
 import type { Identification, RiskFlag } from "@/lib/ai/types";
 import {
   bulkReviewCandidates,
+  draftListingForCandidate,
   identifyCandidate,
   promoteCandidate,
 } from "../../actions";
@@ -42,20 +43,98 @@ function identTitle(c: CandidateView): string | null {
   return parts.length ? parts.join(" ") : null;
 }
 
-/** A first-draft description from the identification. */
-function identDescription(c: CandidateView): string {
-  const id = c.identification;
-  if (!id) return "";
-  const lines: string[] = [id.summary];
-  const facts = [
-    id.maker && `Maker: ${id.maker}`,
-    id.era && `Era: ${id.era}`,
-    id.material && `Material: ${id.material}`,
-    id.condition && `Condition: ${id.condition}`,
-    id.notableDefects && `Note: ${id.notableDefects}`,
-  ].filter(Boolean);
-  if (facts.length) lines.push("", ...(facts as string[]));
-  return lines.join("\n");
+function PromoteForm({
+  candidate: c,
+  clearanceId,
+}: {
+  candidate: CandidateView;
+  clearanceId: string;
+}) {
+  const [title, setTitle] = useState(identTitle(c) ?? c.label);
+  const [description, setDescription] = useState("");
+  const [drafting, setDrafting] = useState(false);
+  const autodrafted = useRef(false);
+
+  async function draft() {
+    setDrafting(true);
+    try {
+      const d = await draftListingForCandidate(c.id);
+      setTitle((t) => d.title || t);
+      setDescription(d.description);
+    } finally {
+      setDrafting(false);
+    }
+  }
+
+  // Draft a description automatically the first time the form is opened.
+  useEffect(() => {
+    if (!autodrafted.current && !description) {
+      autodrafted.current = true;
+      void draft();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <form
+      action={promoteCandidate}
+      className="grid gap-3 border-t border-line-soft bg-surface-sunk/40 p-4"
+    >
+      <input type="hidden" name="candidate_id" value={c.id} />
+      <input type="hidden" name="clearance_id" value={clearanceId} />
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="overline">Listing</span>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={draft}
+          disabled={drafting}
+        >
+          {drafting
+            ? "Writing…"
+            : description
+              ? "Redraft with AI"
+              : "Draft with AI"}
+        </Button>
+      </div>
+
+      <label className="block text-sm">
+        <span className="mb-1 block text-muted">Product title</span>
+        <input
+          name="title"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="h-10 w-full rounded border border-line bg-surface px-3 outline-none focus:border-ink"
+        />
+      </label>
+      <label className="block text-sm">
+        <span className="mb-1 block text-muted">Asking price (£)</span>
+        <input
+          name="asking_price"
+          inputMode="decimal"
+          defaultValue={c.suggestedAskingPrice ?? ""}
+          className="h-10 w-full rounded border border-line bg-surface px-3 outline-none focus:border-ink"
+        />
+      </label>
+      <label className="block text-sm">
+        <span className="mb-1 block text-muted">Description</span>
+        <textarea
+          name="description"
+          rows={7}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Write it yourself, or use ‘Draft with AI’ above."
+          className="w-full rounded border border-line bg-surface px-3 py-2 outline-none focus:border-ink"
+        />
+      </label>
+      <Button type="submit" size="md" className="self-start">
+        Create product &amp; publish
+      </Button>
+    </form>
+  );
 }
 
 function IdentificationPanel({ id }: { id: Identification }) {
@@ -274,51 +353,7 @@ export function CandidateReview({
                 )}
 
                 {expanded === c.id && (
-                  <form
-                    action={promoteCandidate}
-                    className="grid gap-3 border-t border-line-soft bg-surface-sunk/40 p-4"
-                  >
-                    <input type="hidden" name="candidate_id" value={c.id} />
-                    <input
-                      type="hidden"
-                      name="clearance_id"
-                      value={clearanceId}
-                    />
-                    <label className="block text-sm">
-                      <span className="mb-1 block text-muted">
-                        Product title
-                      </span>
-                      <input
-                        name="title"
-                        required
-                        defaultValue={identTitle(c) ?? c.label}
-                        className="h-10 w-full rounded border border-line bg-surface px-3 outline-none focus:border-ink"
-                      />
-                    </label>
-                    <label className="block text-sm">
-                      <span className="mb-1 block text-muted">
-                        Asking price (£)
-                      </span>
-                      <input
-                        name="asking_price"
-                        inputMode="decimal"
-                        defaultValue={c.suggestedAskingPrice ?? ""}
-                        className="h-10 w-full rounded border border-line bg-surface px-3 outline-none focus:border-ink"
-                      />
-                    </label>
-                    <label className="block text-sm">
-                      <span className="mb-1 block text-muted">Description</span>
-                      <textarea
-                        name="description"
-                        rows={4}
-                        defaultValue={identDescription(c)}
-                        className="w-full rounded border border-line bg-surface px-3 py-2 outline-none focus:border-ink"
-                      />
-                    </label>
-                    <Button type="submit" size="md" className="self-start">
-                      Create product &amp; publish
-                    </Button>
-                  </form>
+                  <PromoteForm candidate={c} clearanceId={clearanceId} />
                 )}
               </li>
             );

@@ -308,6 +308,80 @@ export async function identifyCandidate(candidateId: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Draft a storefront listing (title + description) for a candidate
+// ---------------------------------------------------------------------------
+
+export async function draftListingForCandidate(
+  candidateId: string
+): Promise<{ title: string; description: string }> {
+  const { supabase } = await requireStaff();
+
+  const { data: candidate } = await supabase
+    .from("candidate_items")
+    .select("id, label, suggested_asking_price")
+    .eq("id", candidateId)
+    .single();
+  if (!candidate) throw new Error("Candidate not found.");
+
+  // Use the most recent identification if there is one.
+  const { data: idJob } = await supabase
+    .from("ai_jobs")
+    .select("ai_results(raw)")
+    .eq("type", "identify")
+    .eq("subject_type", "candidate_item")
+    .eq("subject_id", candidateId)
+    .eq("status", "succeeded")
+    .order("finished_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const results = idJob?.ai_results as unknown as { raw: unknown }[] | null;
+  const idRaw = results?.[0]?.raw as
+    | { identification?: import("@/lib/ai/types").Identification }
+    | undefined;
+
+  const { provider } = getVisionProvider();
+
+  const { data: job } = await supabase
+    .from("ai_jobs")
+    .insert({
+      type: "write_listing",
+      subject_type: "candidate_item",
+      subject_id: candidateId,
+      provider: provider.name,
+      status: "running",
+      started_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  const result = await provider.writeListing({
+    label: candidate.label,
+    identification: idRaw?.identification ?? null,
+    askingPrice: candidate.suggested_asking_price,
+  });
+
+  if (job) {
+    await supabase.from("ai_results").insert({
+      ai_job_id: job.id,
+      prompt_version: result.promptVersion,
+      raw: result as unknown as Record<string, unknown>,
+    });
+    await supabase
+      .from("ai_jobs")
+      .update({
+        status: "succeeded",
+        model: result.model,
+        cost_pence: result.costPence,
+        finished_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+  }
+
+  return result.draft;
+}
+
+// ---------------------------------------------------------------------------
 // Promote a candidate to a live product
 // ---------------------------------------------------------------------------
 

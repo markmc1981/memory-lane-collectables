@@ -1,7 +1,9 @@
 import type {
   DetectedObject,
   DetectionResult,
+  Identification,
   IdentificationResult,
+  ListingDraftResult,
   PhotoInput,
   VisionProvider,
 } from "./types";
@@ -176,6 +178,34 @@ export class MockVisionProvider implements VisionProvider {
           "Simulated identification (no AI key set). Add an ANTHROPIC_API_KEY to get a real read of this item.",
         confidence: 0.4,
         riskFlags: ["identification_uncertain"],
+      },
+    };
+  }
+
+  async writeListing(input: {
+    label: string;
+    identification: Identification | null;
+    askingPrice: number | null;
+  }): Promise<ListingDraftResult> {
+    await new Promise((r) => setTimeout(r, 400));
+    const id = input.identification;
+    const bits = [
+      id?.era && `${id.era}`,
+      id?.material,
+      input.label.toLowerCase(),
+    ].filter(Boolean);
+    return {
+      provider: "mock",
+      model: "mock-vision-1",
+      promptVersion: "mock/2026-09-09",
+      costPence: 0,
+      draft: {
+        title: [id?.brand ?? id?.maker, id?.era, input.label]
+          .filter(Boolean)
+          .join(" "),
+        description: `A ${bits.join(", ")} recovered during a house clearance in Scotland.\n\n${
+          id?.condition ?? "Used, with wear consistent with age."
+        }\n\n(Simulated copy — add an ANTHROPIC_API_KEY for real descriptions.)`,
       },
     };
   }

@@ -121,6 +121,20 @@ export type IdentificationResult = {
   costPence: number | null;
 };
 
+/** A drafted product listing for one channel. */
+export type ListingDraft = {
+  title: string;
+  description: string;
+};
+
+export type ListingDraftResult = {
+  provider: string;
+  model: string;
+  promptVersion: string;
+  draft: ListingDraft;
+  costPence: number | null;
+};
+
 export interface VisionProvider {
   readonly name: string;
   /** Find the individual saleable objects across a set of photos. */
@@ -135,4 +149,14 @@ export interface VisionProvider {
     hint: string | null,
     markPhotos?: PhotoInput[]
   ): Promise<IdentificationResult>;
+  /**
+   * Write a Memory Lane storefront listing (title + description) from what
+   * we actually know — the identification, the label, an optional price.
+   * Never invents facts; hedges honestly; notes condition plainly.
+   */
+  writeListing(input: {
+    label: string;
+    identification: Identification | null;
+    askingPrice: number | null;
+  }): Promise<ListingDraftResult>;
 }

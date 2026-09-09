@@ -5,7 +5,9 @@ import { optionalEnv } from "@/lib/config";
 import type {
   DetectedObject,
   DetectionResult,
+  Identification,
   IdentificationResult,
+  ListingDraftResult,
   PhotoInput,
   RiskFlag,
   VisionProvider,
@@ -122,6 +124,27 @@ Rules:
 - Be honest and specific about condition and defects — this is for resale, buyers rely on it.
 - Flag (never certify) precious metal, designer, signed artwork, antique, collectable watch, hallmarks, or your own uncertainty.
 - possibleSearchTerms: 3–6 phrases someone would type to find comparable sold items.`;
+
+const ListingSchema = z.object({
+  title: z
+    .string()
+    .describe(
+      "Elegant storefront title: brand/maker + item + style + a key word. No ALL CAPS, no marketing fluff."
+    ),
+  description: z
+    .string()
+    .describe(
+      "2–4 short paragraphs. Warm but honest. Plain-English overview, then the concrete details (maker/era/material/dimensions if known), then condition stated frankly, then a line on delivery/collection. Never state a fact not supported by the identification. Do not invent measurements."
+    ),
+});
+
+const LISTING_SYSTEM = `You write product listings for Memory Lane Collectables, a Scottish shop selling vintage and collectable items found during house clearances.
+
+Voice: calm, warm, a little editorial. Not salesy, no hype, no exclamation marks. British English.
+- Only use facts from the identification provided. If the maker/era/material is a guess, phrase it as "likely" or "in the style of".
+- Be honest about condition — buyers rely on it. If condition wasn't assessed, say condition is available on request.
+- End with a short line: "Available for collection near Airdrie or by courier."
+- Do not invent dimensions or provenance.`;
 
 function toDetected(
   raw: z.infer<typeof DetectionSchema>["objects"][number],
@@ -272,6 +295,58 @@ export class ClaudeVisionProvider implements VisionProvider {
         summary: p?.summary ?? "No identification returned.",
         confidence: p?.confidence ?? 0,
         riskFlags: p?.riskFlags ?? [],
+      },
+    };
+  }
+
+  async writeListing(input: {
+    label: string;
+    identification: Identification | null;
+    askingPrice: number | null;
+  }): Promise<ListingDraftResult> {
+    const facts = input.identification
+      ? JSON.stringify(input.identification, null, 2)
+      : "(no detailed identification was run — work from the label only, and keep claims minimal)";
+
+    const response = await this.client.messages.parse({
+      model: MODEL,
+      max_tokens: 2000,
+      system: LISTING_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `Item label: ${input.label}
+Asking price: ${input.askingPrice != null ? `£${input.askingPrice}` : "not set"}
+
+Identification:
+${facts}
+
+Write the storefront listing.`,
+        },
+      ],
+      output_config: { format: zodOutputFormat(ListingSchema) },
+    });
+
+    const p = response.parsed_output;
+    const u = response.usage;
+    const inTokens =
+      (u.input_tokens ?? 0) +
+      (u.cache_read_input_tokens ?? 0) +
+      (u.cache_creation_input_tokens ?? 0);
+    const costPence = Math.round(
+      ((inTokens * PRICE.inPerM + (u.output_tokens ?? 0) * PRICE.outPerM) /
+        1_000_000) *
+        100
+    );
+
+    return {
+      provider: this.name,
+      model: MODEL,
+      promptVersion: PROMPT_VERSION,
+      costPence,
+      draft: {
+        title: p?.title ?? input.label,
+        description: p?.description ?? "",
       },
     };
   }
