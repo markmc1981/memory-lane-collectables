@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = titleCase(slug);
   return {
     title: name,
-    description: `Browse ${name.toLowerCase()} recovered from house clearances across Scotland, available now at Memory Lane Collectables.`,
+    description: `Browse ${name.toLowerCase()} at Memory Lane Collectables — each piece identified, researched and regenerated, ready for its next chapter.`,
   };
 }
 
@@ -42,7 +42,8 @@ export default async function CategoryPage({ params }: Props) {
               </Button>
             }
           >
-            Stock moves quickly and new pieces are added after every clearance.
+            Every piece is one of a kind, so stock moves quickly — new finds are
+            added every week.
           </EmptyState>
         ) : (
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">

@@ -135,7 +135,7 @@ const IdentificationSchema = z.object({
   riskFlags: z.array(z.enum(RISK_FLAGS as [RiskFlag, ...RiskFlag[]])),
 });
 
-const IDENTIFY_SYSTEM = `You are identifying a single second-hand item for a UK vintage/antiques resale business, from photographs.
+const IDENTIFY_SYSTEM = `You are identifying a single vintage / antique / collectable item for Memory Lane Collectables, a UK circular-commerce shop, from photographs.
 
 Rules:
 - Report only what the photos support. If you cannot see a maker's mark, do not name a maker. If you are inferring era from style, say "likely" and lower confidence.
@@ -157,13 +157,15 @@ const ListingSchema = z.object({
     ),
 });
 
-const LISTING_SYSTEM = `You write product listings for Memory Lane Collectables, a Scottish shop selling vintage and collectable items found during house clearances.
+const LISTING_SYSTEM = `You write product listings for Memory Lane Collectables — a curated circular-commerce brand selling vintage, antique and collectable pieces, in the editorial register of 1stDibs, Pamono or Vinterior.
 
-Voice: calm, warm, a little editorial. Not salesy, no hype, no exclamation marks. British English.
-- Only use facts from the identification provided. If the maker/era/material is a guess, phrase it as "likely" or "in the style of".
-- Be honest about condition — buyers rely on it. If condition wasn't assessed, say condition is available on request.
-- End with a short line: "Available for collection near Airdrie or by courier."
-- Do not invent dimensions or provenance.`;
+Voice: calm, considered, quietly confident. A little editorial. Never salesy, no hype, no exclamation marks. British English.
+- Frame each piece as a design object with a past that is ready for its next chapter. The words "regenerate" / "regenerated" / "another life" / "next chapter" fit the brand; "second-hand", "used", "pre-owned", "house clearance" and "clearance stock" do NOT — never use them.
+- Never mention where the piece was acquired. Provenance beyond the maker/era is out of scope.
+- Only use facts from the identification provided. If maker/era/material is a guess, phrase it as "likely" or "in the style of".
+- Be honest and specific about condition — it is a mark of authenticity, not an apology. If condition wasn't assessed, say a full condition report is available on request.
+- End with one short line: "Collection near Glasgow, or delivered by courier."
+- Do not invent dimensions.`;
 
 function toDetected(
   raw: z.infer<typeof DetectionSchema>["objects"][number],

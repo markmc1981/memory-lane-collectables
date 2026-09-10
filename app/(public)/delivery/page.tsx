@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const options = [
   {
     t: "Collection",
-    d: "Arrange a time to collect from us near Airdrie. Free, and the easiest option for larger pieces.",
+    d: "Arrange a time to collect from us near Glasgow. Free, and the easiest option for larger pieces.",
   },
   {
     t: "Local delivery",

@@ -38,8 +38,9 @@ export function SiteFooter() {
           <div className="col-span-2 sm:col-span-1">
             <Logo tone="dark" />
             <p className="mt-4 max-w-xs text-sm text-ink-muted">
-              Interesting vintage and collectable pieces, rediscovered through
-              house clearances across Scotland.
+              A curated circular-commerce brand. We identify, research and
+              regenerate remarkable furniture, antiques and collectables — and
+              return them to circulation.
             </p>
           </div>
 
@@ -66,10 +67,9 @@ export function SiteFooter() {
 
         <div className="flex flex-col gap-2 border-t border-ink-line py-6 text-xs text-ink-muted sm:flex-row sm:justify-between">
           <span>
-            &copy; {new Date().getFullYear()} Memory Lane Collectables. A Ceemac
-            Removals &amp; Clearances business.
+            &copy; {new Date().getFullYear()} Memory Lane Collectables.
           </span>
-          <span>Sourced and sold in Scotland.</span>
+          <span>Regenerated in Scotland. Shipped worldwide.</span>
         </div>
       </div>
     </footer>

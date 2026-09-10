@@ -13,11 +13,12 @@ function Search() {
 
 const primaryNav = [
   { label: "Shop All", href: "/shop" },
-  { label: "Furniture", href: "/category/vintage-furniture" },
-  { label: "Collectables", href: "/category/collectables" },
-  { label: "Ceramics & Glass", href: "/category/ceramics-glass" },
-  { label: "Art & Prints", href: "/category/art-prints" },
-  { label: "Clearance Finds", href: "/category/clearance-finds" },
+  { label: "Furniture", href: "/shop?category=vintage-furniture" },
+  { label: "Collectables", href: "/shop?category=collectables" },
+  { label: "Art & Decorative", href: "/shop?category=art-prints" },
+  { label: "Scottish", href: "/collections/scottish" },
+  { label: "Regenerated", href: "/regenerated" },
+  { label: "Our Story", href: "/about" },
 ];
 
 export function SiteHeader() {

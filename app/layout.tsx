@@ -20,11 +20,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(config.site.url),
   title: {
-    default: "Memory Lane Collectables — objects with a story",
+    default: "Memory Lane Collectables — objects with a past, ready for their next chapter",
     template: "%s | Memory Lane Collectables",
   },
   description:
-    "Vintage furniture, antiques and collectables rediscovered through house clearances across Scotland. Each piece recovered, checked and priced by hand.",
+    "A curated circular-commerce brand from Scotland. Discover vintage furniture, antiques and collectables — identified, researched and regenerated for a new generation.",
   openGraph: {
     type: "website",
     siteName: "Memory Lane Collectables",

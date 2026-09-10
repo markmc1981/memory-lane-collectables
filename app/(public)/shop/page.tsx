@@ -20,7 +20,7 @@ type Props = {
 export const metadata: Metadata = {
   title: "Shop all",
   description:
-    "Browse every vintage, antique and collectable piece currently available at Memory Lane Collectables — furniture, ceramics, art, lighting and more, recovered from Scottish house clearances.",
+    "Browse every vintage, antique and collectable piece currently available at Memory Lane Collectables — furniture, ceramics, art, lighting and more, each one regenerated and ready for its next chapter.",
 };
 
 export default async function ShopPage({ searchParams }: Props) {

@@ -71,7 +71,7 @@ export function BuyBox({
                   checked={fulfilment === "collection"}
                   onChange={() => setFulfilment("collection")}
                 />
-                Collection near Airdrie
+                Collection near Glasgow
               </span>
               <span className="text-muted">Free</span>
             </label>

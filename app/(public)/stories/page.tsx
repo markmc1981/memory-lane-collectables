@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "The Journal",
   description:
-    "Guides to identifying vintage furniture, Scottish pottery, watches and collectables — and notes on what turns up during house clearances.",
+    "Guides to identifying vintage furniture, Scottish pottery, watches and collectables — and notes on the pieces we regenerate.",
 };
 
 export default function StoriesPage() {
@@ -15,8 +15,8 @@ export default function StoriesPage() {
     <>
       <PageHeader
         kicker="The Journal"
-        title="Notes on what we find"
-        lede="Short, practical guides to spotting things worth keeping — and the odd story from the van."
+        title="Notes on the pieces we regenerate"
+        lede="Short, practical guides to identifying makers, periods and marks — and the stories behind particular objects."
       />
       <Container width="default">
         <div className="py-14">
@@ -30,8 +30,9 @@ export default function StoriesPage() {
               </Button>
             }
           >
-            We&rsquo;re writing up a few guides — vintage teak, Scottish studio
-            pottery, and how we price things.
+            We&rsquo;re writing up a few guides — reading pottery marks, why
+            mid-century teak holds its value, and how we price against real sold
+            comparables.
           </EmptyState>
         </div>
       </Container>

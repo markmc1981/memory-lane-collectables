@@ -31,7 +31,7 @@ export default function ContactPage() {
             </div>
             <div className="flex justify-between py-4">
               <dt className="text-muted">Area</dt>
-              <dd className="text-ink-soft">Central Scotland (near Airdrie)</dd>
+              <dd className="text-ink-soft">Central Scotland, near Glasgow</dd>
             </div>
           </dl>
         </div>
